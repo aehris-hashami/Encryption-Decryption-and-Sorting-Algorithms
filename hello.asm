@@ -6,7 +6,7 @@ include Irvine.inc
 ;MASM library.
 ;   The IDE is used to create this 
 ;is Visual Studio 19
-
+ 
 .data
     hello byte "Hello",0
 
