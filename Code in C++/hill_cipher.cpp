@@ -1,31 +1,12 @@
 #include <iostream>
-#include <string>
 #include <vector>
+#include <string>
+
 using namespace std;
 
-// encrypting method 
+// transformational cipher
 
-bool find(vector<int> vec, int search_key){
-    for(auto i:vec) if(i == search_key) return true; 
-    return false;
-}
-
-vector<int> gen_rand_indicies(int dimensions){
-    vector<int> vec; srand(time(0));
-
-    for(int i=0; i<dimensions; i++){
-        int r = rand()%dimensions; 
-        if(!find(vec,r)) vec.push_back(r); else i--;
-    } 
-
-    return vec;
-}
-
-vector<vector<int>> gen_shuffling_transformation_mat(vector<int> randind_vec, int dimensions){
-    vector<vector<int>> shuffling_matrix(dimensions, vector<int>(dimensions,0)); // initializing matrix
-    for(int i=0; i<dimensions; i++) shuffling_matrix[randind_vec[i]][i] = 1;
-    return shuffling_matrix;
-}   
+// utility functions
 
 string substring(string str, int start, int end){
     string substr = "";
@@ -43,61 +24,99 @@ vector<string> string_sharding(string ptxt, int lps){
     } return shards;
 }
 
-void applying_transformation(vector<vector<int>> matrix, vector<int> vec){
-    if(matrix[0].size() != vec.size()) return;
-    
-    vector<int> result(vec.size(),0);
-
-    for(int i=0; i<vec.size(); i++) for(int j=0; j<vec.size(); j++) result[i] += matrix[i][j]*vec[j]; 
-
-    cout << "- -" << endl;
-    for(auto i:result) cout << '|' << i << '|' << endl;
-    cout << "- -" << endl;
-}
-
-
-
 string applying_transformation(vector<vector<int>> mat, string str){
     string result = "";
     for(int i=0; i<mat.size(); i++){
-        for(int j=0; j<mat.size(); j++) 
-            if(mat[i][j]*(int(str[j])) != 0) result += char(mat[j][i]*(int(str[j])));
-    } return result;
+        for(int j=0; j<mat.size(); j++)
+            if(char(mat[i][j]*(int(str[j]))) != '\0') result += char(mat[i][j]*(int(str[j])));
+    }return result;
 }   
 
- 
+// encryption
 
-// decrypting method
+vector<vector<int>> gen_square_matrix(int dimension);
 
-vector<vector<int>> inverse_matrix(vector<vector<int>> matrix){}
+ vector<int> apply_transformation(vector<vector<int>> matrix, string text);
 
-int main(){
-    cout << "Shuffled identity matrix" << endl;
-    vector<vector<int>> mat = gen_shuffling_transformation_mat(gen_rand_indicies(4),4);
-    for(int i=0; i<mat.size(); i++){for(auto j:mat[i]) cout << j << ' '; cout << endl;} 
-    /*
-    */
-   
-    cout << "Sharding the plaint text" << endl;
-    string str = "asdfewtdszdgsfgnhdjh"; // asdf ewtd szdg sfgn hdjh /0
-    vector<string> sharding = string_sharding(str,4);
-    for(auto i:sharding) cout << i << ' '; cout << endl;
+string encrypt(string plaintext);
 
-    cout << "Applying transformation" << endl;
-    string b = applying_transformation(mat,sharding[0]);
-    cout << sharding[0] << ' ' << b ;
-    // for(auto i:b) cout << i << ' '; cout << endl;
+// decryption
 
-    // vector<int> vec = 
-    // {
-    // 4,
-    // 2,
-    // 5,
-    // 1
-    // };
+ vector<string> apply_transformation(vector<vector<int>> matrix, vector<int> vec);
 
-    // applying_transformation(mat,vec);
+int determinant(vector<vector<int>> mat) {
+    int n = mat.size();
+    if (n == 1) return mat[0][0];
+    if (n == 2) return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
 
+    int det = 0;
+    for (int col = 0; col < n; ++col) {
+        vector<vector<int>> minor;
+        for (int i = 1; i < n; ++i) {
+            vector<int> row;
+            for (int j = 0; j < n; ++j) {
+                if (j != col) row.push_back(mat[i][j]);
+            }
+            minor.push_back(row);
+        }
+        det += (col % 2 == 0 ? 1 : -1) * mat[0][col] * determinant(minor);
+    }
+    return det;
+}
 
-    return 0;
+// Function to compute the adjugate matrix
+vector<vector<int>> adjugate_matrix(vector<vector<int>> mat){
+    int n = mat.size();
+    vector<vector<int>> adj(n, vector<int>(n));
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            vector<vector<int>> minor;
+            for (int x = 0; x < n; ++x) {
+                if (x == i) continue;
+                vector<int> row;
+                for (int y = 0; y < n; ++y) {
+                    if (y == j) continue;
+                    row.push_back(mat[x][y]);
+                }
+                minor.push_back(row);
+            }
+            adj[j][i] = determinant(minor) * ((i + j) % 2 == 0 ? 1 : -1); // Transpose
+        }
+    }
+    return adj;
+}
+
+// Function to compute the inverse matrix
+vector<vector<int>> inverse_matrix(vector<vector<int>>& mat) {
+    int n = mat.size();
+    int det = determinant(mat);
+    if (!det) throw invalid_argument("Matrix is singular and has no inverse.");
+
+    vector<vector<int>> adj = adjugate_matrix(mat);
+    vector<vector<int>> inverse(n, vector<int>(n));
+    
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            cout << "inverse[" << i << "][" << j << "] = " << inverse[i][j] << endl;
+
+            inverse[i][j] = adj[i][j] / det;
+        }
+    }
+    return inverse;
+}
+
+string decrypt(vector<int> cipher_vec, vector<vector<int>> mat){
+    // get the inverse matrix
+    vector<vector<int>> inverse_mat = inverse_matrix(mat);
+    for(int i=0; i<mat.size(); i++){for(auto i:inverse_mat[i]) cout << i << ' '; cout << endl;} cout << endl; 
+
+    // break down the cipher text into apropriate segments
+    vector<string> cipher_shards = string_sharding(cipher_vec,mat.size());
+
+    // apply transformation to individual cipher segments
+    vector<string> plain_shards; for(auto i:cipher_shards) plain_shards.push_back(applying_transformation(inverse_mat,i));
+
+    // concatenate all the transformed segments and return it
+    string plaintext = ""; for(auto i:cipher_shards) plaintext += i;
+    return plaintext;
 }
