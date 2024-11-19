@@ -3,7 +3,45 @@
 #include <vector>
 using namespace std;
 
-// encrypting method 
+// utility functions
+bool find(vector<int>,int);
+vector<int> gen_rand_indicies(int);
+vector<vector<int>> gen_shuffling_transformation_mat(vector<int>,int);
+string substring(string,int,int);
+vector<string> string_sharding(string,int);
+string applying_transformation(vector<vector<int>>,string);
+vector<vector<int>> transpose(vector<vector<int>>);
+
+// encrypting & decryption algorithm 
+string encrypt(string,vector<vector<int>>);
+string decrypt(string,vector<vector<int>>);
+
+
+
+int main(){     // testing
+    
+    // generating random shuffled identiy matrix    
+    srand(time(0)); int dimension = rand()%4 + 2;
+    vector<vector<int>> matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),dimension);
+
+    for(int i=0; i<dimension; i++){for(auto i:matrix[i]) cout << i << ' '; cout << endl;} cout << endl; 
+
+
+    // getting plaint text input from user
+    cout << "Enter text: "; string plaintext; getline(cin,plaintext);
+
+    // encrypt the plain text
+    string ciphertext = encrypt(plaintext,matrix);
+    cout << "Cipher text generated: " << ciphertext << endl;
+
+    // dycrypt the cipher text
+    string deciphertext = decrypt(ciphertext,matrix);
+    cout << "Decrypted text generated: " << deciphertext << endl;
+
+    return 0;
+}
+
+
 
 bool find(vector<int> vec, int search_key){
     for(auto i:vec) if(i == search_key) return true; 
@@ -34,6 +72,7 @@ string substring(string str, int start, int end){
 }
 
 vector<string> string_sharding(string ptxt, int lps){
+    // lps stands for "letters per segment".
     vector<string> shards; int itr = 0;
     if(ptxt.length()%lps != 0) itr++; itr += ptxt.length()/lps;
     
@@ -85,31 +124,7 @@ string decrypt(string ciphertext, vector<vector<int>> mat){
     vector<string> plain_shards; for(auto i:cipher_shards) plain_shards.push_back(applying_transformation(transpose_mat,i));
 
     // concatenate all the transformed segments and return it
-    string plaintext = ""; for(auto i:cipher_shards) plaintext += i;
+    string plaintext = ""; for(auto i:plain_shards) plaintext += i;
     return plaintext;
 }
 
-
-// teseting
-int main(){
-    
-    // generating random shuffled identiy matrix    
-    srand(time(0)); int dimension = rand()%4 + 2;
-    vector<vector<int>> matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),dimension);
-
-    for(int i=0; i<dimension; i++){for(auto i:matrix[i]) cout << i << ' '; cout << endl;} cout << endl; 
-
-
-    // getting plaint text input from user
-    cout << "Enter text: "; string plaintext; getline(cin,plaintext);
-
-    // encrypt the plain text
-    string ciphertext = encrypt(plaintext,matrix);
-    cout << "Cipher text generated: " << ciphertext << endl;
-
-    // dycrypt the cipher text
-    string deciphertext = decrypt(ciphertext,matrix);
-    cout << "Decrypted text generated: " << deciphertext << endl;
-
-    return 0;
-}
