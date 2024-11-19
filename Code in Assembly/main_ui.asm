@@ -76,6 +76,10 @@ TITLE COAL_PROJECT
     SignUp_UI PROC
         enter 0,0
 
+        ;call GetMaxXY
+        ;shr dx, 1
+        ;mov rows, dh
+
         push OFFSET msg_title_signup
         push LENGTHOF msg_title_signup
         push 1
@@ -125,6 +129,10 @@ TITLE COAL_PROJECT
     Login_UI PROC
         enter 0,0
 
+        ;call GetMaxXY
+        ;shr dx, 1
+        ;mov rows, dh
+
         push OFFSET msg_title_login
         push LENGTHOF msg_title_login
         push 1
@@ -160,8 +168,15 @@ TITLE COAL_PROJECT
     Login_UI ENDP
 
     main PROC
+        call Clrscr
+        mov rows, 8
         call SignUp_UI
-        inc rows
+
+        mov eax, 1500
+        call Delay
+
+        call Clrscr
+        mov rows, 8
         call Login_UI
 
         call exitProcess
