@@ -62,54 +62,280 @@ print_row:
     invoke ExitProcess, 0
 main ENDP
 
-; Function definitions
-find PROC vec:DWORD, search_key:DWORD
-    ; Implementation of find function
-    ; ...
-    ret
+; Utility procedures
+; Function to find an integer in a vector
+find PROC
+    ; Parameters: 
+    ;   EAX - pointer to vector
+    ;   EDX - search key
+    ; Returns: 
+    ;   AL - 1 if found, 0 if not found
+    PUSH EDI
+    MOV EDI, [EAX] ; Load vector size
+    ADD EAX, 4     ; Move to the first element
+    XOR ECX, ECX   ; Initialize index to 0
+
+find_loop:
+    CMP ECX, EDI
+    JGE not_found   ; If index >= size, not found
+    MOV EBX, [EAX]  ; Load current element
+    CMP EBX, EDX    ; Compare with search key
+    JE found        ; If equal, found
+    ADD EAX, 4      ; Move to next element
+    INC ECX         ; Increment index
+    JMP find_loop
+
+found:
+    MOV AL, 1       ; Set return value to true
+    JMP end_find
+
+not_found:
+    XOR AL, AL      ; Set return value to false
+
+end_find:
+    POP EDI
+    RET
 find ENDP
 
-gen_rand_indicies PROC dimensions:DWORD
-    ; Implementation of gen_rand_indicies function
-    ; ...
-    ret
+; Function to generate random indices
+gen_rand_indicies PROC
+    ; Parameters:
+    ;   EAX - dimensions
+    ; Returns:
+    ;   EAX - pointer to vector of random indices
+    PUSH EDI
+    PUSH ESI
+    PUSH EBX
+    CALL Randomize   ; Seed the random number generator
+    MOV EDI, EAX    ; Store dimensions
+    ; Allocate memory for vector
+    MOV EAX, EDI
+    SHL EAX, 2      ; Multiply by 4 (size of int)
+    CALL HeapAlloc   ; Allocate memory
+    MOV ESI, EAX    ; Store pointer to vector
+
+    XOR ECX, ECX    ; Initialize index to 0
+
+gen_rand_loop:
+    CALL RandomRange ; Get random number in range [0, dimensions)
+    MOV EBX, EAX    ; Store random number
+    PUSH ESI        ; Save vector pointer
+    PUSH EBX        ; Push random number
+    CALL find       ; Check if it exists in the vector
+    POP EBX
+    POP ESI
+    TEST AL, AL
+    JZ add_index    ; If not found, add to vector
+    DEC ECX         ; Decrement index if found
+    JMP gen_rand_loop
+
+add_index:
+    MOV [ESI + ECX*4], EBX ; Add random number to vector
+    INC ECX
+    CMP ECX, EDI
+    JL gen_rand_loop
+
+    MOV EAX, ESI    ; Return pointer to vector
+    POP EBX
+    POP ESI
+    POP EDI
+    RET
 gen_rand_indicies ENDP
 
-gen_shuffling_transformation_mat PROC randind_vec:DWORD, dimensions:DWORD
-    ; Implementation of gen_shuffling_transformation_mat function
-    ; ...
-    ret
+; Function to generate shuffling transformation matrix
+gen_shuffling_transformation_mat PROC
+    ; Parameters:
+    ;   EAX - pointer to random indices
+    ;   EDX - dimensions
+    ; Returns:
+    ;   EAX - pointer to shuffling matrix
+    PUSH EDI
+    PUSH ESI
+    PUSH EBX
+    MOV EDI, EDX    ; Store dimensions
+    ; Allocate memory for matrix
+    MOV EAX, EDI
+    IMUL EAX, EDI   ; EAX = dimensions * dimensions
+    SHL EAX, 2      ; Multiply by 4 (size of int)
+    CALL HeapAlloc   ; Allocate memory
+    MOV ESI, EAX    ; Store pointer to matrix
+
+    ; Initialize matrix to zero
+    XOR ECX, ECX
+init_matrix:
+    CMP ECX, EDI
+    JGE end_init
+    MOV EAX, ESI
+    ADD EAX, ECX
+    IMUL EAX, EDI
+    ADD EAX, ECX
+    MOV DWORD PTR [EAX], 0 ; Set to 0
+    INC ECX
+    JMP init_matrix
+
+end_init:
+    ; Fill the shuffling matrix
+    MOV ECX, 0
+fill_matrix:
+    CMP ECX, EDI
+    JGE end_fill
+    MOV EAX, [EAX + ECX*4] ; Get random index
+    MOV [ESI + EAX*4 + ECX*4*EDI], 1 ; Set matrix value to 1
+    INC ECX
+    JMP fill_matrix
+
+end_fill:
+    MOV EAX, ESI    ; Return pointer to matrix
+    POP EBX
+    POP ESI
+    POP EDI
+    RET
 gen_shuffling_transformation_mat ENDP
 
-substring PROC str:DWORD, start:DWORD, end:DWORD
-    ; Implementation of substring function
-    ; ...
-    ret
+; Function to get substring
+substring PROC
+    ; Parameters:
+    ;   EAX - pointer to string
+    ;   EDX - start index
+    ;   ECX - end index
+    ; Returns:
+    ;   EAX - pointer to substring
+    PUSH EDI
+    PUSH ESI
+    PUSH EBX
+    ; Allocate memory for substring
+    MOV EDI, ECX
+    SUB EDI, EDX
+    ADD EDI, 1      ; Length of substring
+    SHL EDI, 2      ; Multiply by 4 (size of char)
+    CALL HeapAlloc   ; Allocate memory
+    MOV ESI, EAX    ; Store pointer to substring
+
+    ; Copy substring
+    MOV EBX, EDX
+    SUB EBX, 1      ; Adjust for 0-based index
+copy_loop:
+    CMP EBX, ECX
+    JGE end_copy
+    MOV AL, [EAX + EBX] ; Get character
+    MOV [ESI], AL
+    INC ESI
+    INC EBX
+    JMP copy_loop
+
+end_copy:
+    MOV BYTE PTR [ESI], 0 ; Null-terminate the string
+    MOV EAX, ESI    ; Return pointer to substring
+    POP EBX
+    POP ESI
+    POP EDI
+    RET
 substring ENDP
 
-string_sharding PROC ptxt:DWORD, lps:DWORD
-    ; Implementation of string_sharding function
-    ; ...
-    ret
+; Function to shard string
+string_sharding PROC
+    ; Parameters:
+    ;   EAX - pointer to plaintext
+    ;   EDX - letters per segment
+    ; Returns:
+    ;   EAX - pointer to vector of shards
+    PUSH EDI
+    PUSH ESI
+    PUSH EBX
+    ; Calculate number of shards
+    MOV EDI, EAX
+    CALL StrLength
+    MOV EBX, EDX
+    XOR ECX, ECX
+    ; Calculate number of segments
+    MOV EDX, EAX
+    MOV EAX, EBX
+    DIV EAX
+    ADD ECX, EAX
+    ; Check for remainder
+    CMP EDX, 0
+    JZ no_remainder
+    INC ECX
+no_remainder:
+    ; Allocate memory for shards
+    SHL ECX, 2      ; Multiply by 4 (size of pointer)
+    CALL HeapAlloc   ; Allocate memory
+    MOV ESI, EAX    ; Store pointer to shards
+
+    ; Create shards
+    MOV EAX, EDI
+    MOV EDX, EBX
+    XOR EBX, EBX
+shard_loop:
+    CMP EBX, ECX
+    JGE end_shard
+    PUSH EAX
+    PUSH EBX
+    CALL substring   ; Get substring
+    MOV [ESI + EBX*4], EAX ; Store pointer to shard
+    POP EBX
+    POP EAX
+    ADD EAX, EDX
+    INC EBX
+    JMP shard_loop
+
+end_shard:
+    MOV EAX, ESI    ; Return pointer to shards
+    POP EBX
+    POP ESI
+    POP EDI
+    RET
 string_sharding ENDP
 
-applying_transformation PROC mat:DWORD, str:DWORD
-    ; Implementation of applying_transformation function
-    ; ...
-    ret
+; Function to apply transformation
+applying_transformation PROC
+    ; Parameters:
+    ;   EAX - pointer to matrix
+    ;   EDX - pointer to string
+    ; Returns:
+    ;   EAX - pointer to result string
+    PUSH EDI
+    PUSH ESI
+    PUSH EBX
+    ; Allocate memory for result
+    CALL HeapAlloc
+    MOV ESI, EAX    ; Store pointer to result
+
+    ; Apply transformation
+    MOV EAX, [EAX]  ; Get matrix size
+    XOR ECX, ECX
+transform_loop:
+    CMP ECX, EAX
+    JGE end_transform
+    ; Inner loop
+    MOV EDI, [EAX + ECX*4] ; Get row
+    XOR EBX, EBX
+inner_loop:
+    CMP EBX, EAX
+    JGE end_inner
+    ; Check if matrix value is non-zero
+    MOV EDX, [EDI + EBX*4]
+    TEST EDX, EDX
+    JZ skip
+    ; Multiply and add to result
+    MOV AL, [EDX + EBX]
+    ADD [ESI], AL
+skip:
+    INC EBX
+    JMP inner_loop
+
+end_inner:
+    INC ECX
+    JMP transform_loop
+
+end_transform:
+    MOV BYTE PTR [ESI], 0 ; Null-terminate the string
+    MOV EAX, ESI    ; Return pointer to result
+    POP EBX
+    POP ESI
+    POP EDI
+    RET
 applying_transformation ENDP
-
-encrypt PROC plaintext:DWORD, matrix:DWORD
-    ; Implementation of encrypt function
-    ; ...
-    ret
-encrypt ENDP
-
-transpose PROC matrix:DWORD
-    ; Implementation of transpose function
-    ; ...
-    ret
-transpose ENDP
 
 decrypt PROC
     ; Parameters: 
