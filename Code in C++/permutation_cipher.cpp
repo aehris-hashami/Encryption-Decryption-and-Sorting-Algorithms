@@ -41,6 +41,7 @@ int main(){     // testing
     return 0;
 }
 
+// encryptions methods
 
 
 bool find(vector<int> vec, int search_key){
@@ -51,9 +52,9 @@ bool find(vector<int> vec, int search_key){
 vector<int> gen_rand_indicies(int dimensions){
     vector<int> vec; srand(time(0));
 
-    for(int i=0; i<dimensions; i++){
+    for(int i=0; i<dimensions;){
         int r = rand()%dimensions; 
-        if(!find(vec,r)) vec.push_back(r); else i--;
+        if(!find(vec,r)){vec.push_back(r); i++;}
     } 
 
     return vec;
@@ -61,21 +62,25 @@ vector<int> gen_rand_indicies(int dimensions){
 
 vector<vector<int>> gen_shuffling_transformation_mat(vector<int> randind_vec, int dimensions){
     vector<vector<int>> shuffling_matrix(dimensions, vector<int>(dimensions,0)); // initializing matrix
+
     for(int i=0; i<dimensions; i++) shuffling_matrix[randind_vec[i]][i] = 1;
+
     return shuffling_matrix;
 }   
 
 string substring(string str, int start, int end){
     string substr = "";
+
     for(int i=start-1; i < end; i++) substr += str[i];
+
     return substr; 
 }
 
 vector<string> string_sharding(string ptxt, int lps){
     // lps stands for "letters per segment".
     vector<string> shards; int itr = 0;
+
     if(ptxt.length()%lps != 0) itr++; itr += ptxt.length()/lps;
-    
     for(int i=1; i <= itr; i++){
         string temp = substring(ptxt,lps*(i - 1) + 1,lps*i);
         shards.push_back(temp);
@@ -108,13 +113,16 @@ string encrypt(string plaintext, vector<vector<int>> matrix){
 
 vector<vector<int>> transpose(vector<vector<int>> matrix){
     vector<vector<int>> transpose(matrix.size(),vector<int>(matrix.size(),0));
+
     for(int i=0; i<matrix.size(); i++) for(int j=0; j<matrix.size(); j++) transpose[i][j] = matrix[j][i];
+
     return transpose;
 }
 
 string decrypt(string ciphertext, vector<vector<int>> mat){
     // get the transpose of the matrix
     vector<vector<int>> transpose_mat = transpose(mat);
+
     for(int i=0; i<mat.size(); i++){for(auto i:transpose_mat[i]) cout << i << ' '; cout << endl;} cout << endl; 
 
     // break down the cipher text into apropriate segments
@@ -125,6 +133,8 @@ string decrypt(string ciphertext, vector<vector<int>> mat){
 
     // concatenate all the transformed segments and return it
     string plaintext = ""; for(auto i:plain_shards) plaintext += i;
+
+    
     return plaintext;
 }
 
