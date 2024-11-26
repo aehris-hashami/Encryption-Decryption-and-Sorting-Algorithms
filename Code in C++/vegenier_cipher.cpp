@@ -28,7 +28,6 @@ int main(){
 }
 
 // utility function 
-// ==============================================================================================
 string convert_cap(string txt){
     for(int i=0; i<txt.size(); i++) 
         if(65 <= int(txt[i]) && int(txt[i]) < 65+26) txt[i] = char(int(txt[i])^32);

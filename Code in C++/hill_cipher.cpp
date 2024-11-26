@@ -83,26 +83,12 @@ vector<int> convert_letters_to_num(string text){
 string encrypt(string plaintext, vector<vector<int>> matrix){
     // apply sharding
     vector<string> plain_shards = string_sharding(plaintext,matrix.size());
-
-    // checking sharding of plain text
-    for(auto i:plain_shards) cout << i << ' '; cout << endl;    
-
     vector<vector<int>> plain_vec; for(auto i:plain_shards) plain_vec.push_back(convert_letters_to_num(i));
-
-    // checking the positional vaulue of ptxt
-    for(auto i:plain_vec){for(auto j:i) cout << j << ' '; cout << endl;} cout << endl;  
 
     // apply transformation and take modulo 26, and then convert the numbers to capital letters
     vector<vector<int>> cipher_vec; 
     for(auto i:plain_vec) cipher_vec.push_back(apply_transformation(matrix,i));
-
-    // checking the positional value of ctxt after transformation of ptxt
-    for(auto i:cipher_vec) {for(auto j:i) cout << j << ' '; cout << endl;} cout << endl; 
-
     for(int i=0; i<cipher_vec.size(); i++) for(int j=0; j<cipher_vec[i].size(); j++) cipher_vec[i][j] = cipher_vec[i][j]%26 + 65;
-
-    // checking the positional value fo ctxt after taking modulo 26
-    for(auto i:cipher_vec) {for(auto j:i) cout << j << ' '; cout << endl;} cout << endl; 
 
     // concatenate all the cipher shards into one cipher string
     string cipher_text = ""; for(auto i:cipher_vec) for(auto j:i) cipher_text += char(j);
