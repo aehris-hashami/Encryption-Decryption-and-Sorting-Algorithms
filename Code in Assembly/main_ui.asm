@@ -210,7 +210,8 @@ TITLE COAL_PROJECT
         ret
     Login_UI ENDP
 
-    Run_UI PROC
+    OPTION LANGUAGE: syscall
+    @Run_UI@0 PROC
         enter 0,0
 
         call SignUp_UI
@@ -218,10 +219,7 @@ TITLE COAL_PROJECT
 
         leave
         ret
-    Run_UI ENDP
+    @Run_UI@ ENDP
+    OPTION LANGUAGE: C
 
-    main PROC
-        call Run_UI
-        call exitProcess
-    main ENDP
-END main
+END
