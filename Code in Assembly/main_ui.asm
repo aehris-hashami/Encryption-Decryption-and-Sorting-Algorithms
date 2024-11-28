@@ -1,6 +1,15 @@
 INCLUDE Irvine32.inc
 TITLE COAL_PROJECT
 
+print_tabbed PROTO
+read_string PROTO
+center_rows PROTO
+delay_time PROTO
+
+SignUp_UI PROTO
+Login_UI PROTO
+@Run_UI@0 PROTO
+
 .data
     MAX_SIZE = 80
     rows BYTE 0
@@ -219,7 +228,7 @@ TITLE COAL_PROJECT
 
         leave
         ret
-    @Run_UI@ ENDP
+    @Run_UI@0 ENDP
     OPTION LANGUAGE: C
 
 END
