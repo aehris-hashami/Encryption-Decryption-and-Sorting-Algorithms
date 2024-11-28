@@ -16,21 +16,26 @@ vector<vector<int>> gen_square_matrix(int);
 int determinant(vector<vector<int>>);
 vector<vector<int>> adjugate_matrix(vector<vector<int>>);
 vector<vector<int>> inverse_matrix(vector<vector<int>>&);
-vector<int> apply_transformation(vector<vector<int>>,string);
+vector<int> apply_transformation(vector<vector<int>>,vector<int>);
 
 
 // encryption & decryption 
-string encrypt(string,vector<vector<int>>);
-string decrypt(string,vector<vector<int>>);
+vector<int> encrypt(string,vector<vector<int>>);
+string decrypt(vector<int>,vector<vector<int>>);
 
 
 int main(){
 
-    vector<vector<int>>  keymatrix = gen_square_matrix(4);
+    vector<vector<int>>  keymatrix = gen_square_matrix(4); 
+    if(determinant(keymatrix) == 0) return 0; else cout << "Invertebale matrix is slected" << endl;
     for(auto i:keymatrix){for(auto j:i) cout << j << ' '; cout << endl;} cout << endl;
 
     string plaintext = "abcdefgh"; cout << "Plain text: " << plaintext << endl;
-    string ciphertext = encrypt(plaintext,keymatrix); cout << "Cipher text: " << ciphertext << endl;
+    vector<int> cipher_vec = encrypt(plaintext,keymatrix); 
+    
+    string ciphertext = "";
+    cout << "Cipher text: " << ciphertext << endl;
+    cout << "After decryption: " << decrypt(cipher_vec,keymatrix) << endl;
 
     return 0;
 }
@@ -64,7 +69,7 @@ vector<int> apply_transformation(vector<vector<int>> mat, vector<int> vec){
     return result;
 } 
 
-vector<vector<int>> gen_square_matrix(int dimension){
+vector<vector<int>> gen_square_matrix(int dimension){ 
     vector<vector<int>> matrix(dimension, vector<int>(dimension,0)); srand(time(0));
     
     for(int i=0; i<dimension; i++) for(int j=0; j<dimension; j++) matrix[i][j] = rand()%9 + 1;
@@ -80,19 +85,17 @@ vector<int> convert_letters_to_num(string text){
     return char_positional_val;
 }
 
-string encrypt(string plaintext, vector<vector<int>> matrix){
+vector<int> encrypt(string plaintext, vector<vector<int>> matrix){
     // apply sharding
     vector<string> plain_shards = string_sharding(plaintext,matrix.size());
     vector<vector<int>> plain_vec; for(auto i:plain_shards) plain_vec.push_back(convert_letters_to_num(i));
 
-    // apply transformation and take modulo 26, and then convert the numbers to capital letters
-    vector<vector<int>> cipher_vec; 
+    // apply transformation
+    vector<vector<int>> cipher_vec;
     for(auto i:plain_vec) cipher_vec.push_back(apply_transformation(matrix,i));
-    for(int i=0; i<cipher_vec.size(); i++) for(int j=0; j<cipher_vec[i].size(); j++) cipher_vec[i][j] = cipher_vec[i][j]%26 + 65;
+    vector<int> transform_vec; for(auto i:cipher_vec) for(auto j:i) transform_vec.push_back(j);
+    return transform_vec;
 
-    // concatenate all the cipher shards into one cipher string
-    string cipher_text = ""; for(auto i:cipher_vec) for(auto j:i) cipher_text += char(j);
-    return cipher_text;
 }
 
 
@@ -151,31 +154,43 @@ vector<vector<int>> inverse_matrix(vector<vector<int>>& mat) {
     vector<vector<int>> adj = adjugate_matrix(mat);
     vector<vector<int>> inverse(n, vector<int>(n));
     
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            cout << "inverse[" << i << "][" << j << "] = " << inverse[i][j] << endl;
+    // for (int i = 0; i < n; ++i) {
+    //     for (int j = 0; j < n; ++j) {
+    //         cout << "inverse[" << i << "][" << j << "] = " << inverse[i][j] << endl;
 
-            inverse[i][j] = adj[i][j] / det;
-        }
-    }
+    //         inverse[i][j] = adj[i][j] / det;
+    //     }
+    // }
     return inverse;
 }
 
-string decrypt(string cipher_text, vector<vector<int>> mat){
+vector<int> segment(vector<int> vec, int start, int end){
+    vector<int> segment; 
+    for(int i=start-1; i<end; i++) segment.push_back(vec[i]);
+    return segment;
+}
+
+vector<vector<int>> sharding(vector<int> vec, int lps){
+    // lps means line per segment
+    vector<vector<int>> shards;
+    for(int i=1; i<vec.size()/lps; i++) shards.push_back(segment(vec,i*lps,(i+1)*lps));
+    return shards;
+}
+
+string decrypt(vector<int> ciphertext, vector<vector<int>> mat){
     // get the inverse matrix
     vector<vector<int>> inverse_mat = inverse_matrix(mat);
-    for(int i=0; i<mat.size(); i++){for(auto i:inverse_mat[i]) cout << i << ' '; cout << endl;} cout << endl; 
+    for(auto i:inverse_mat) for(auto j:i){cout << j << ' '; cout << endl;} cout << endl;
 
-    // break down the cipher text into apropriate segments
-    vector<string> cipher_shards = string_sharding(cipher_text,mat.size());
+    // get individual vectors and apply transformation by inverse matrix
+    vector<vector<int>> cipher_vec = sharding(ciphertext,inverse_mat.size());
 
-    // convert the letters to characters positional values after applying transformation
-    vector<vector<int>> plain_vec; for(auto i:plain_vec) plain_vec.push_back(apply_transformation(inverse_mat,i));
-    for(auto i:plain_vec) for(auto j:i) j = (j%26) + 65; 
-    for(int i=0; i<plain_vec.size(); i++) for(int j=0; j<plain_vec.size(); j++) 
-        cipher_shards[i][j] = char(plain_vec[i][j]);
+    // 
+    vector<vector<int>> plain_vec; 
+    for(auto i:cipher_vec) plain_vec.push_back(apply_transformation(inverse_mat,i));
 
-    // concatenate all the transformed segments and return it
-    string plaintext = ""; for(auto i:cipher_shards) plaintext += i;
+    string plaintext = "";
+    for(int i=0; i<cipher_vec.size(); i++) for(int j=0; j<cipher_vec[i].size(); j++) 
+        plaintext += char(plain_vec[i][j]);
     return plaintext;
-}
+} 
