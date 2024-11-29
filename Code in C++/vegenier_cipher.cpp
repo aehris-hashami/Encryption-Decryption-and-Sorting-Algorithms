@@ -4,7 +4,7 @@
 using namespace std; 
 
 // utility functions
-string convert_cap(string);                 // conversion of capital letters to lewer case
+string convert_cap(string&);                 // conversion of capital letters to lewer case
 
 // encryption function
 string vegenier_cipher(string,string);      // normal encryption
@@ -19,18 +19,17 @@ string decrypt_vegenier_cipher(string,string);
 int main(){
     string txt = "ABCd";
     string ctxt = vegenier_cipher(txt,convert_cap(txt));
-    cout << ctxt << endl;
+    cout << "Encrypted text: " << ctxt << endl;
 
-    ctxt = vegenier_cipher(txt,convert_cap(txt),0);
-    cout << ctxt << endl;
+    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,txt) << endl;
 
     return 0;
 }
 
 // utility function 
-string convert_cap(string txt){
+string convert_cap(string& txt){
     for(int i=0; i<txt.size(); i++) 
-        if(65 <= int(txt[i]) && int(txt[i]) < 65+26) txt[i] = char(int(txt[i])^32);
+        if(97 <= int(txt[i]) && int(txt[i]) < 97+26) txt[i] = char(int(txt[i])^32);
     return txt;
 }
 
@@ -38,11 +37,15 @@ string convert_cap(string txt){
 // ============================================================================================
 
 // original encryption function
-string vegenier_cipher(string ptxt, string key){
+string vegenier_cipher(string plaintext, string key){
+    plaintext = convert_cap(plaintext); key = convert_cap(key);
+
     string ctxt = ""; 
-    for(int i=0; i<=ptxt.length(); i++) 
-        ctxt += char(int(ptxt[i]) + (int(ptxt[i])+int(key[i%key.length()])- 2*97)%26); 
-        // given that all letters are in lower case
+    
+    for(int i=0; i<plaintext.length(); i++) 
+        ctxt += 
+        char((int(plaintext[i])+int(key[i%key.length()])- 2*65)%26 + 65); 
+    
     return ctxt;
 }
 
@@ -57,5 +60,14 @@ string vegenier_cipher(string ptxt, string key, int itr){
 // =============================================================================================
 
 string decrypt_vegenier_cipher(string ciphertext, string key){
+    ciphertext = convert_cap(ciphertext); key = convert_cap(key);
 
+    string plaintext = "";
+
+    for(int i=0; i<ciphertext.length(); i++){
+        // cout << (int(ciphertext[i]) - (int(key[i%key.length()]) - 65) +  26 - 65)%26 + 65 << endl;
+        plaintext += char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 65);
+    }
+    
+    return plaintext;
 }
