@@ -26,7 +26,7 @@ string decrypt(vector<int>,vector<vector<int>>);
 
 int main(){
     // generating and checking transformational matrix
-    vector<vector<int>>  keymatrix = gen_square_matrix(4); 
+    vector<vector<int>>  keymatrix = gen_square_matrix(2); 
     if(determinant(keymatrix) == 0) return 0; else cout << "Invertebale matrix is slected" << endl;
     for(auto i:keymatrix){for(auto j:i) cout << j << ' '; cout << endl;} cout << endl;
 
@@ -37,17 +37,13 @@ int main(){
     // displaying encrypted values
     cout << "Encryted letter values: ";
     for(auto i:cipher_vec) cout << i << ' '; cout << endl;
-    
-    // constructing cipher text
-    string ciphertext = ""; for(auto i:cipher_vec) ciphertext += char(i%26 + 65);
-    cout << "Cipher text: " << ciphertext << endl;
 
     // checking inverted matrix
     vector<vector<int>> invmat = inverse_matrix(keymatrix);
     for(auto i:invmat){for(auto j:i) cout << j << ' '; cout << endl;} cout << endl;
 
     // decrypting the encrypted cipher text
-    // cout << "After decryption: " << decrypt(cipher_vec,keymatrix) << endl;
+    cout << "After decryption: " << decrypt(cipher_vec,keymatrix) << endl;
 
     return 0;
 }
@@ -81,11 +77,36 @@ vector<int> apply_transformation(vector<vector<int>> mat, vector<int> vec){
     return result;
 } 
 
-vector<vector<int>> gen_square_matrix(int dimension){ 
-    vector<vector<int>> matrix(dimension, vector<int>(dimension,0)); srand(time(0));
+int determinant(vector<vector<int>> mat) {
+    int n = mat.size();
+    if (n == 1) return mat[0][0];
+    if (n == 2) return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
+
+    int det = 0;
+    for (int col = 0; col < n; ++col) {
+        vector<vector<int>> minor;
+        for (int i = 1; i < n; ++i) {
+            vector<int> row;
+            for (int j = 0; j < n; ++j) {
+                if (j != col) row.push_back(mat[i][j]);
+            }
+            minor.push_back(row);
+        }
+        det += (col % 2 == 0 ? 1 : -1) * mat[0][col] * determinant(minor);
+    }
+    return det;
+}
+
+
+vector<vector<int>> gen_square_matrix(int dim){ 
+    vector<vector<int>> matrix(dim, vector<int>(dim,0)); srand(time(0));
     
-    for(int i=0; i<dimension; i++) for(int j=0; j<dimension; j++) matrix[i][j] = rand()%9 + 1;
-     
+    do{ 
+        for(int i=0; i<dim; i++) for(int j=0; j<dim; j++) matrix[i][j] = rand();
+    }while(determinant(matrix) != 1 && determinant(matrix) != -1);
+    
+    cout << endl << "det(mat) = " << determinant(matrix) << endl;
+
     return matrix; 
 }
 
@@ -115,25 +136,6 @@ vector<int> encrypt(string plaintext, vector<vector<int>> matrix){
 // ==============================================================================================
 
 
-int determinant(vector<vector<int>> mat) {
-    int n = mat.size();
-    if (n == 1) return mat[0][0];
-    if (n == 2) return mat[0][0] * mat[1][1] - mat[0][1] * mat[1][0];
-
-    int det = 0;
-    for (int col = 0; col < n; ++col) {
-        vector<vector<int>> minor;
-        for (int i = 1; i < n; ++i) {
-            vector<int> row;
-            for (int j = 0; j < n; ++j) {
-                if (j != col) row.push_back(mat[i][j]);
-            }
-            minor.push_back(row);
-        }
-        det += (col % 2 == 0 ? 1 : -1) * mat[0][col] * determinant(minor);
-    }
-    return det;
-}
 
 // Function to compute the adjugate matrix
 vector<vector<int>> adjugate_matrix(vector<vector<int>> mat){
@@ -191,6 +193,9 @@ string decrypt(vector<int> ciphertext, vector<vector<int>> mat){
 
     // get individual vectors and apply transformation by inverse matrix
     vector<vector<int>> cipher_vec = sharding(ciphertext,inverse_mat.size());
+
+    cout << endl;
+    for(auto i:cipher_vec){for(auto j:i) cout << j << ' '; cout << endl;} cout << endl;
 
     // applying transformation to all the cipher vectors
     vector<vector<int>> plain_vec; 
