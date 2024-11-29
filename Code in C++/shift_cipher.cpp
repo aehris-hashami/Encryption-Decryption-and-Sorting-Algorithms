@@ -38,9 +38,10 @@ vector<int> convert_letters_to_num(string text){
 }
 
 string encrypt(string plaintext, int shift){
+    shift %= 26;
     auto str_vec = convert_letters_to_num(plaintext); string ciphertext = "";
 
-    for(auto i:str_vec){i = (i+shift)%26 + 65; ciphertext += char(i);}  
+    for(char i:str_vec) {i = i+shift + 97; ciphertext += char(i);}  
     
     return ciphertext;
 }

@@ -16,12 +16,13 @@ vector<vector<int>> transpose(vector<vector<int>>);
 string encrypt(string,vector<vector<int>>);
 string decrypt(string,vector<vector<int>>);
 
-
+// handling edge cases
+void exception_handling(){}
 
 int main(){     // testing
     
     // generating random shuffled identiy matrix    
-    srand(time(0)); int dimension = rand()%4 + 2;
+    srand(time(0)); int dimension = 7;
     vector<vector<int>> matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),dimension);
 
     for(int i=0; i<dimension; i++){for(auto i:matrix[i]) cout << i << ' '; cout << endl;} cout << endl; 
