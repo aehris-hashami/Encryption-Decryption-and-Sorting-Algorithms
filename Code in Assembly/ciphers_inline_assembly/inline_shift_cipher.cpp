@@ -36,7 +36,7 @@ vector<int> convert_letters_to_num(string text){
 
         int ch = int(i);
         
-        __asm{
+        _asm{
             xor eax, eax
             mov ax, [ch]
 
@@ -63,7 +63,7 @@ string encrypt(string plaintext, int shift){
 
     for(auto i:str_vec){
 
-        __asm{
+        _asm{
             xor eax, eax
 
             mov ax, [shift]
@@ -85,7 +85,7 @@ string encrypt(string plaintext, int shift){
 
 string decrypt(string ciphertext, int shift){
 
-    __asm{
+    _asm{
         xor eax, eax 
         mov ax, [shift]
         neg ax 
