@@ -1,4 +1,4 @@
-#include <iostream>
+  #include <iostream>
 #include <string>
 
 using namespace std; 
@@ -28,8 +28,24 @@ int main(){
 
 // utility function 
 string convert_cap(string& txt){
-    for(int i=0; i<txt.size(); i++) 
-        if(97 <= int(txt[i]) && int(txt[i]) < 97+26) txt[i] = char(int(txt[i])^32);
+    for(int i=0; i<txt.size(); i++){
+        
+        int ch = int(txt[i]);
+
+        __asm{
+            xor eax, eax
+            mov ax, [ch]
+            
+            ; if
+                cmp eax, 97
+                jl _skip
+                cmp eax, 123
+                jnl _skip
+                    xor eax, 32
+                    mov [ch], ax
+            _skip:
+        }
+    }
     return txt;
 }
 
@@ -42,22 +58,39 @@ string vegenier_cipher(string plaintext, string key){
 
     string ctxt = ""; 
     
-    for(int i=0; i<plaintext.length(); i++) 
-        ctxt += 
-        char((int(plaintext[i])+int(key[i%key.length()])- 2*65)%26 + 65); 
+    for(int i=0; i<plaintext.length(); i++){
+
+        int 
+            ch = 0,
+            p = char(plaintext[i]),
+            k = char(key[i%key.length()]);
+        
+        __asm{
+            xor eax, eax 
+            xor ebx, ebx 
+
+            mov ax, [p]
+            mov bx, [k]
+
+            sub ax, 65
+            sub bx, 65
+
+            add eax, ebx
+            div 26
+            add edx, 65
+
+            mov [ch], edx
+        }
     
+        ctxt += char(ch);
+    } 
     return ctxt;
 }
 
-// encrypt each letter recursively (optional)
-string vegenier_cipher(string ptxt, string key, int itr){
-    if(itr == key.length()) return "";
-    // given that all letters are in lower case
-    return char(int(ptxt[itr]) + (int(ptxt[itr])+int(key[itr%key.length()])- 2*97)%26) + vegenier_cipher(ptxt,key,itr+1);
-}
 
 // decrypton algorithm 
 // =============================================================================================
+
 
 string decrypt_vegenier_cipher(string ciphertext, string key){
     ciphertext = convert_cap(ciphertext); key = convert_cap(key);
@@ -65,7 +98,25 @@ string decrypt_vegenier_cipher(string ciphertext, string key){
     string plaintext = "";
 
     for(int i=0; i<ciphertext.length(); i++){
-        plaintext += char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 65);
+        int 
+            ch = 0,
+            c = int(ciphertext[i]),
+            k = int(key[i%key.length()]);
+
+        __asm{
+            xor eax, eax 
+
+            mov ax, [c]
+            sub ax, [k]
+            add eax, 26
+
+            div 26
+            add edx, 65
+
+            mov [ch], dx
+        }
+
+        plaintext += char(ch);
     }
     
     return plaintext;

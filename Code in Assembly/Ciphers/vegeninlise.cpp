@@ -1,4 +1,4 @@
-#include <iostream>
+  #include <iostream>
 #include <string>
 
 using namespace std; 
@@ -28,8 +28,24 @@ int main(){
 
 // utility function 
 string convert_cap(string& txt){
-    for(int i=0; i<txt.size(); i++) 
-        if(97 <= int(txt[i]) && int(txt[i]) < 97+26) txt[i] = char(int(txt[i])^32);
+    for(int i=0; i<txt.size(); i++){
+        
+        int ch = int(txt[i]);
+
+        __asm{
+            xor eax, eax
+            mov ax, [ch]
+            
+            ; if
+                cmp eax, 97
+                jl _skip
+                cmp eax, 123
+                jnl _skip
+                    xor eax, 32
+                    mov [ch], ax
+            _skip:
+        }
+    }
     return txt;
 }
 
@@ -65,6 +81,7 @@ string decrypt_vegenier_cipher(string ciphertext, string key){
     string plaintext = "";
 
     for(int i=0; i<ciphertext.length(); i++){
+        // cout << (int(ciphertext[i]) - (int(key[i%key.length()]) - 65) +  26 - 65)%26 + 65 << endl;
         plaintext += char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 65);
     }
     
