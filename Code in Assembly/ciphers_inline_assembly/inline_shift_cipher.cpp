@@ -32,15 +32,50 @@ int main(){
 vector<int> convert_letters_to_num(string text){
     vector<int> vec;
      
-    for(char i:text) vec.push_back((64 < int(i) && int(i) < 91)?(int(i)-65):(int(i)-97));
-    
+    for(char i:text){
+
+        int ch = int(i);
+        
+        __asm{
+            xor eax, eax
+            mov ax, [ch]
+
+            ;if
+                cmp ax, 64
+                jng _else
+                cmp ax, 91
+                jnl _else
+                    sub eax, 65
+                jmp _skip
+            _else:
+                    sub eax, 97
+            _skip:
+                mov [ch], ax
+        }
+
+        vec.push_back(ch);
+    } 
     return vec;
 }
 
 string encrypt(string plaintext, int shift){
     auto str_vec = convert_letters_to_num(plaintext); string ciphertext = "";
 
-    for(auto i:str_vec){i = (i+shift)%26 + 65; ciphertext += char(i);}  
+    for(auto i:str_vec){
+
+        __asm{
+            xor eax, eax
+
+            mov ax, [i]
+            add ax, [shift]
+            div 26
+            add edx, 65
+
+            mov [i], edx
+        }
+
+        ciphertext += char(i);
+    }  
     
     return ciphertext;
 }
@@ -49,5 +84,14 @@ string encrypt(string plaintext, int shift){
 // decryption method
 
 string decrypt(string ciphertext, int shift){
-    return encrypt(ciphertext,(-1)*shift);
+
+    __asm{
+        xor eax, eax 
+
+        mov ax, [shift]
+        neg ax 
+        mov [shift], ax
+    }
+
+    return encrypt(ciphertext,shift);
 }
