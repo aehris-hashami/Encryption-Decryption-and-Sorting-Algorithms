@@ -66,10 +66,10 @@ string encrypt(string plaintext, int shift){
         __asm{
             xor eax, eax
 
-            mov ax, [i]
-            add ax, [shift]
+            mov ax, [shift]
             div 26
-            add edx, 65
+            add edx, i
+            add edx, 97
 
             mov [i], edx
         }
@@ -87,7 +87,6 @@ string decrypt(string ciphertext, int shift){
 
     __asm{
         xor eax, eax 
-
         mov ax, [shift]
         neg ax 
         mov [shift], ax
