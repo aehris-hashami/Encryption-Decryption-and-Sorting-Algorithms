@@ -1,14 +1,14 @@
 INCLUDE Irvine32.inc
 TITLE COAL_PROJECT
 
-print_tabbed PROTO
-read_string PROTO
+print_tabbed PROTO, str_ptr: PTR BYTE, length_str: BYTE, shift_str: BYTE, newline: BYTE
+read_string PROTO, input_buffer: PTR BYTE
 center_rows PROTO
-delay_time PROTO
+delay_time PROTO, seconds: DWORD
 
 SignUp_UI PROTO
 Login_UI PROTO
-@Run_UI@0 PROTO
+;@Run_UI@0 PROTO
 
 .data
     MAX_SIZE = 80
@@ -28,20 +28,22 @@ Login_UI PROTO
     msg_signup_success BYTE "Your credentials have been registered successfully!", 0
     msg_login_success BYTE "You have been logged in successfully!", 0
 
-    username BYTE MAX_SIZE+1 DUP(?)
-    password BYTE MAX_SIZE+1 DUP(?)
+    username BYTE MAX_SIZE+1 DUP(0)
+    password BYTE MAX_SIZE+1 DUP(0)
+
+    secret_pass BYTE MAX_SIZE+1 DUP(0)
 
 .code
-    print_tabbed PROC
-        enter 1,0
+    print_tabbed PROC str_ptr: PTR BYTE, length_str: BYTE, shift_str: BYTE, newline: BYTE
+        LOCAL shift_value: BYTE
         push eax
         push ecx
         push edx
 
-        mov dl, [ebp+16]
-        mov cl, [ebp+12]
+        mov dl, length_str
+        mov cl, shift_str
         shr dl, cl
-        mov [ebp-1], dl
+        mov shift_value, dl
 
         call GetMaxXY
 
@@ -53,39 +55,37 @@ Login_UI PROTO
         dec al
         dec dl
 
-        sub dl, [ebp-1]
+        sub dl, shift_value
 
-        mov cl, [ebp+8]
+        mov cl, newline
         add rows, cl
 
         add dh, rows
         inc rows
         call Gotoxy
 
-        mov edx, [ebp+20]
+        mov edx, str_ptr
         call WriteString
 
         pop edx
         pop ecx
         pop eax
-        leave
-        ret 16
-        
+
+        ret
+
     print_tabbed ENDP
 
-    read_string PROC
-        enter 0,0
+    read_string PROC input_buffer: PTR BYTE
         push ecx
         push edx
 
         mov ecx, MAX_SIZE
-        mov edx, [ebp+8]
+        mov edx, input_buffer
         call ReadString
 
         pop edx
         pop ecx
-        leave
-        ret 4
+        ret
     read_string ENDP
 
     center_rows PROC
@@ -109,126 +109,92 @@ Login_UI PROTO
         ret
     center_rows ENDP
 
-    delay_time PROC
-        enter 0,0
+    delay_time PROC seconds: DWORD
         push eax
 
-        mov eax, [ebp+8]
+        mov eax, seconds
         call Delay
 
         pop eax
-        leave
         ret
     delay_time ENDP
 
-    SignUp_UI PROC
+    ;OPTION LANGUAGE: syscall
+    @SignUp_UI@4 PROC password_buffer: PTR BYTE
         enter 0,0
 
         call Clrscr
         call center_rows
 
-        push OFFSET msg_title_signup
-        push LENGTHOF msg_title_signup
-        push 1
-        push 0
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_title_signup, LENGTHOF msg_title_signup, 1, 0
+        invoke print_tabbed, OFFSET msg_intro_signup, LENGTHOF msg_intro_signup, 1, 0
 
-        push OFFSET msg_intro_signup
-        push LENGTHOF msg_intro_signup
-        push 1
-        push 0
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_username, LENGTHOF msg_username, 0, 2
+        invoke read_string, OFFSET username
 
-        push OFFSET msg_username
-        push LENGTHOF msg_username
-        push 0
-        push 2
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_password, LENGTHOF msg_password, 0, 0
+        invoke read_string, OFFSET password
 
-        push OFFSET username
-        call read_string
+        mov edi, OFFSET password
+        mov esi, password_buffer
+        mov ecx, LENGTHOF password
+        rep movsb
 
-        push OFFSET msg_password
-        push LENGTHOF msg_password
-        push 0
-        push 0
-        call print_tabbed
+        mov edx, password_buffer
+        call WriteString
+        exit
 
-        push OFFSET password
-        call read_string
-
-        push OFFSET msg_signup_success
-        push LENGTHOF msg_signup_success
-        push 1
-        push 1
-        call print_tabbed
-
-        push OFFSET border
-        push LENGTHOF border
-        push 1
-        push 1
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_signup_success, LENGTHOF msg_signup_success, 1, 1
+        invoke print_tabbed, OFFSET border, LENGTHOF border, 1, 1
 
         call CRLF
         call WaitMsg
 
         leave
         ret
-    SignUp_UI ENDP
+    @SignUp_UI@4 ENDP
+    ;OPTION LANGUAGE: C
 
-    Login_UI PROC
+    ;OPTION LANGUAGE: syscall
+    @Login_UI@0 PROC
         enter 0,0
 
         call Clrscr
         call center_rows
 
-        push OFFSET msg_title_login
-        push LENGTHOF msg_title_login
-        push 1
-        push 0
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_title_login, LENGTHOF msg_title_login, 1, 0
+        invoke print_tabbed, OFFSET msg_intro_login, LENGTHOF msg_intro_login, 1, 0
 
-        push OFFSET msg_intro_login
-        push LENGTHOF msg_intro_login
-        push 1
-        push 0
-        call print_tabbed
+        invoke print_tabbed, OFFSET msg_username, LENGTHOF msg_username, 0, 2
+        invoke read_string, OFFSET username
 
-        push OFFSET msg_username
-        push LENGTHOF msg_username
-        push 0
-        push 2
-        call print_tabbed
-
-        push OFFSET username
-        call read_string
-
-        push OFFSET msg_password
-        push LENGTHOF msg_password
-        push 0
-        push 0
-        call print_tabbed
-
-        push OFFSET password
-        call read_string
+        invoke print_tabbed, OFFSET msg_password, LENGTHOF msg_password, 0, 0
+        invoke read_string, OFFSET password
 
         call CRLF
         call WaitMsg
 
         leave
         ret
-    Login_UI ENDP
+    @Login_UI@0 ENDP
+    ;OPTION LANGUAGE: C
 
-    OPTION LANGUAGE: syscall
-    @Run_UI@0 PROC
-        enter 0,0
+    ;OPTION LANGUAGE: syscall
+    ;@Run_UI@0 PROC
+    ;    enter 0,0
 
-        call SignUp_UI
-        call Login_UI
+    ;    call SignUp_UI
+    ;    call Login_UI
 
-        leave
-        ret
-    @Run_UI@0 ENDP
-    OPTION LANGUAGE: C
+    ;    leave
+    ;    ret
+    ;@Run_UI@0 ENDP
+    ;OPTION LANGUAGE: C
 
-END
+    main PROC
+        invoke @SignUp_UI@4, OFFSET secret_pass
+        call @Login_UI@0
+        exit
+    main ENDP
+
+END main
