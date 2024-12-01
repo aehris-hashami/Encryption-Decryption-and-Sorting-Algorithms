@@ -1,6 +1,6 @@
-#include <iostream>
+  #include <iostream>
 #include <string>
-#include <vector>
+
 using namespace std; 
 
 // utility functions
@@ -17,20 +17,35 @@ string decrypt_vegenier_cipher(string,string);
 
 
 int main(){
-    cout << "Enter text: "; string txt; getline(cin,txt);
-
-    string ctxt = vegenier_cipher(txt,"key");
+    string txt = "ABCd";
+    string ctxt = vegenier_cipher(txt,convert_lower(txt));
     cout << "Encrypted text: " << ctxt << endl;
 
-    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,"key") << endl;
+    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,txt) << endl;
 
     return 0;
 }
 
 // utility function 
 string convert_lower(string& txt){
-    for(int i=0; i<txt.size(); i++) 
-        if(65 <= int(txt[i]) && int(txt[i]) < 65+26) txt[i] = char(int(txt[i])^32);
+    for(int i=0; i<txt.size(); i++){
+        
+        int ch = int(txt[i]);
+
+        __asm{
+            xor eax, eax
+            mov ax, [ch]
+            
+            ; if
+                cmp eax, 97
+                jl _skip
+                cmp eax, 123
+                jnl _skip
+                    xor eax, 32
+                    mov [ch], ax
+            _skip:
+        }
+    }
     return txt;
 }
 
@@ -44,7 +59,8 @@ string vegenier_cipher(string plaintext, string key){
     string ctxt = ""; 
     
     for(int i=0; i<plaintext.length(); i++) 
-        ctxt += (plaintext[i] == ' ')? (' ') : char((int(plaintext[i])+int(key[i%key.length()])- 2*97)%26 + 97); 
+        ctxt += 
+        char((int(plaintext[i])+int(key[i%key.length()])- 2*65)%26 + 65); 
     
     return ctxt;
 }
@@ -65,7 +81,8 @@ string decrypt_vegenier_cipher(string ciphertext, string key){
     string plaintext = "";
 
     for(int i=0; i<ciphertext.length(); i++){
-        plaintext += (ciphertext[i] == ' ')? (' ') : char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 97);
+        // cout << (int(ciphertext[i]) - (int(key[i%key.length()]) - 65) +  26 - 65)%26 + 65 << endl;
+        plaintext += char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 65);
     }
     
     return plaintext;

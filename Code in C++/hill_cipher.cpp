@@ -129,6 +129,7 @@ vector<vector<float>> gen_square_matrix(int dim) {
   vector<vector<float>> matrix(dim, vector<float>(dim, 0));
   srand(time(0));
 
+
   for (int i = 0; i < dim; i++)
     for (int j = 0; j < dim; j++)
       matrix[i][j] = rand() % 101;
