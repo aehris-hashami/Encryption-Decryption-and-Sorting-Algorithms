@@ -135,14 +135,11 @@ Login_UI PROTO
         invoke print_tabbed, OFFSET msg_password, LENGTHOF msg_password, 0, 0
         invoke read_string, OFFSET password
 
+        cld
         mov edi, OFFSET password
         mov esi, password_buffer
         mov ecx, LENGTHOF password
         rep movsb
-
-        mov edx, password_buffer
-        call WriteString
-        exit
 
         invoke print_tabbed, OFFSET msg_signup_success, LENGTHOF msg_signup_success, 1, 1
         invoke print_tabbed, OFFSET border, LENGTHOF border, 1, 1
