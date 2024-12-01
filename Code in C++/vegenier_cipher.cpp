@@ -1,10 +1,10 @@
 #include <iostream>
 #include <string>
-
+#include <vector>
 using namespace std; 
 
 // utility functions
-string convert_cap(string&);                 // conversion of capital letters to lewer case
+string convert_lower(string&);                 // conversion of capital letters to lewer case
 
 // encryption function
 string vegenier_cipher(string,string);      // normal encryption
@@ -17,19 +17,20 @@ string decrypt_vegenier_cipher(string,string);
 
 
 int main(){
-    string txt = "ABCd";
-    string ctxt = vegenier_cipher(txt,convert_cap(txt));
+    cout << "Enter text: "; string txt; getline(cin,txt);
+
+    string ctxt = vegenier_cipher(txt,"key");
     cout << "Encrypted text: " << ctxt << endl;
 
-    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,txt) << endl;
+    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,"key") << endl;
 
     return 0;
 }
 
 // utility function 
-string convert_cap(string& txt){
+string convert_lower(string& txt){
     for(int i=0; i<txt.size(); i++) 
-        if(97 <= int(txt[i]) && int(txt[i]) < 97+26) txt[i] = char(int(txt[i])^32);
+        if(65 <= int(txt[i]) && int(txt[i]) < 65+26) txt[i] = char(int(txt[i])^32);
     return txt;
 }
 
@@ -38,13 +39,12 @@ string convert_cap(string& txt){
 
 // original encryption function
 string vegenier_cipher(string plaintext, string key){
-    plaintext = convert_cap(plaintext); key = convert_cap(key);
+    plaintext = convert_lower(plaintext); key = convert_lower(key);
 
     string ctxt = ""; 
     
     for(int i=0; i<plaintext.length(); i++) 
-        ctxt += 
-        char((int(plaintext[i])+int(key[i%key.length()])- 2*65)%26 + 65); 
+        ctxt += (plaintext[i] == ' ')? (' ') : char((int(plaintext[i])+int(key[i%key.length()])- 2*97)%26 + 97); 
     
     return ctxt;
 }
@@ -60,12 +60,12 @@ string vegenier_cipher(string ptxt, string key, int itr){
 // =============================================================================================
 
 string decrypt_vegenier_cipher(string ciphertext, string key){
-    ciphertext = convert_cap(ciphertext); key = convert_cap(key);
+    ciphertext = convert_lower(ciphertext); key = convert_lower(key);
 
     string plaintext = "";
 
     for(int i=0; i<ciphertext.length(); i++){
-        plaintext += char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 65);
+        plaintext += (ciphertext[i] == ' ')? (' ') : char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 97);
     }
     
     return plaintext;

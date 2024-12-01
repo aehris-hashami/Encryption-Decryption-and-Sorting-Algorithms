@@ -3,6 +3,17 @@
 #include <vector>
 using namespace std;
 
+
+// UI (userinterface function)
+
+string get_text(){
+    // getting plaint text input from user
+    cout << "Enter text: "; string text ; getline(cin,text);
+    return text;
+}
+
+
+
 // utility functions
 bool find(vector<int>,int);
 vector<int> gen_rand_indicies(int);
@@ -11,39 +22,43 @@ string substring(string,int,int);
 vector<string> string_sharding(string,int);
 string applying_transformation(vector<vector<int>>,string);
 vector<vector<int>> transpose(vector<vector<int>>);
+bool check_identity_mat(vector<vector<int>>);
+void adjusting_length(string&,int);
+void trim_right(string&);
+vector<vector<int>> gen_permutaing_matrix(int);
 
 // encrypting & decryption algorithm 
 string encrypt(string,vector<vector<int>>);
 string decrypt(string,vector<vector<int>>);
 
-// handling edge cases
-void exception_handling(){}
 
 int main(){     // testing
-    
-    // generating random shuffled identiy matrix    
-    srand(time(0)); int dimension = 7;
-    vector<vector<int>> matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),dimension);
 
+    string plaintext = get_text();      // geting text from the user
+
+    // generating random shuffled identiy matrix  
+    int dimension = rand()%plaintext.length();
+    vector<vector<int>> matrix = gen_permutaing_matrix(dimension);
+
+    // displaying the permutation matrix
     for(int i=0; i<dimension; i++){for(auto i:matrix[i]) cout << i << ' '; cout << endl;} cout << endl; 
 
-
-    // getting plaint text input from user
-    cout << "Enter text: "; string plaintext; getline(cin,plaintext);
-
     // encrypt the plain text
-    string ciphertext = encrypt(plaintext,matrix);
-    cout << "Cipher text generated: " << ciphertext << endl;
+    string ciphertext = encrypt(plaintext,matrix); cout << "Cipher text generated: " << ciphertext << endl;
 
     // dycrypt the cipher text
-    string deciphertext = decrypt(ciphertext,matrix);
-    cout << "Decrypted text generated: " << deciphertext << endl;
+    string deciphertext = decrypt(ciphertext,matrix); cout << "Decrypted text generated: " << deciphertext << endl;
+
 
     return 0;
 }
 
 // encryptions methods
 
+bool check_identity_mat(vector<vector<int>> matrix){
+    for(int i=0; i<matrix.size(); i++) if(matrix[i][i] != 1) return false; 
+    return true;
+}
 
 bool find(vector<int> vec, int search_key){
     for(auto i:vec) if(i == search_key) return true; 
@@ -96,9 +111,28 @@ string applying_transformation(vector<vector<int>> mat, string str){
     }return result;
 }   
 
+void adjusting_length(string& str, int length){
+    for(int i=0; i<length; i++) str += " ";
+}
+
+vector<vector<int>> gen_permutaing_matrix(int dimension){
+    srand(time(0)); vector<vector<int>> matrix;
+    
+    while(1){
+        matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),dimension);
+        if(!check_identity_mat(matrix)) break;
+    }
+
+    return matrix;
+}
+
 string encrypt(string plaintext, vector<vector<int>> matrix){
+    
+    // adjusting the length of the plaintext for ease of encrypting and decrypting
+    adjusting_length(plaintext,matrix.size() - plaintext.length()%matrix.size()); 
+    
     // shard the plaintext into peices
-    vector<string> shards = string_sharding(plaintext,matrix.size()); 
+    vector<string> shards = string_sharding(plaintext,matrix.size());
 
     // shuffle the letters within the shards
     vector<string> shuffled_shards;
@@ -120,6 +154,9 @@ vector<vector<int>> transpose(vector<vector<int>> matrix){
     return transpose;
 }
 
+void trim_right(string& str){str.erase(str.find_last_not_of(" ") + 1);}
+
+
 string decrypt(string ciphertext, vector<vector<int>> mat){
     // get the transpose of the matrix
     vector<vector<int>> transpose_mat = transpose(mat);
@@ -134,6 +171,9 @@ string decrypt(string ciphertext, vector<vector<int>> mat){
 
     // concatenate all the transformed segments and return it
     string plaintext = ""; for(auto i:plain_shards) plaintext += i;
+
+    // triming the extra added white spaces (if there is present)
+    trim_right(plaintext);
 
     
     return plaintext;

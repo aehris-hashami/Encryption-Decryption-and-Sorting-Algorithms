@@ -4,7 +4,7 @@
 using namespace std; 
 
 // utility functions
-string convert_cap(string&);                 // conversion of capital letters to lewer case
+string convert_lower(string&);                 // conversion of capital letters to lewer case
 
 // encryption function
 string vegenier_cipher(string,string);      // normal encryption
@@ -18,7 +18,7 @@ string decrypt_vegenier_cipher(string,string);
 
 int main(){
     string txt = "ABCd";
-    string ctxt = vegenier_cipher(txt,convert_cap(txt));
+    string ctxt = vegenier_cipher(txt,convert_lower(txt));
     cout << "Encrypted text: " << ctxt << endl;
 
     cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,txt) << endl;
@@ -27,7 +27,7 @@ int main(){
 }
 
 // utility function 
-string convert_cap(string& txt){
+string convert_lower(string& txt){
     for(int i=0; i<txt.size(); i++){
         
         int ch = int(txt[i]);
@@ -54,7 +54,7 @@ string convert_cap(string& txt){
 
 // original encryption function
 string vegenier_cipher(string plaintext, string key){
-    plaintext = convert_cap(plaintext); key = convert_cap(key);
+    plaintext = convert_lower(plaintext); key = convert_lower(key);
 
     string ctxt = ""; 
     
@@ -76,7 +76,7 @@ string vegenier_cipher(string ptxt, string key, int itr){
 // =============================================================================================
 
 string decrypt_vegenier_cipher(string ciphertext, string key){
-    ciphertext = convert_cap(ciphertext); key = convert_cap(key);
+    ciphertext = convert_lower(ciphertext); key = convert_lower(key);
 
     string plaintext = "";
 
