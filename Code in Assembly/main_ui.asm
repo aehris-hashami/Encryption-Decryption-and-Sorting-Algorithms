@@ -6,7 +6,7 @@ read_string PROTO, input_buffer: PTR BYTE
 center_rows PROTO
 delay_time PROTO, seconds: DWORD
 
-; These prototypes do not work whhen linking with C++
+; These prototypes do not work when linking with C++
 
 ;@SignUp_UI@4 PROTO
 ;@Login_UI@4 PROTO
@@ -127,8 +127,6 @@ delay_time PROTO, seconds: DWORD
         call Clrscr
         call center_rows
 
-        mov eax, white + (black*16)
-        call settextcolor
         invoke print_tabbed, OFFSET msg_title_signup, 1, 0
         invoke print_tabbed, OFFSET msg_intro_signup, 1, 0
 
