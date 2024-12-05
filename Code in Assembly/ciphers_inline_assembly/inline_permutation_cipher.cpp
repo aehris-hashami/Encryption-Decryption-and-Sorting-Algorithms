@@ -216,7 +216,7 @@ vector<vector<int>> transpose(vector<vector<int>> matrix) {
 
       int *trans = &transpose[i][j], *mat = &matrix[j][i];
 
-      _asm {
+      __asm {
           xor esi, esi
           mov esi, [mat]
           mov [trans], esi
