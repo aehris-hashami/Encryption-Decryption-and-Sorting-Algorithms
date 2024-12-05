@@ -7,22 +7,20 @@ using namespace std;
 string convert_lower(string&);                 // conversion of capital letters to lewer case
 
 // encryption function
-string vegenier_cipher(string,string);      // normal encryption
-string vegenier_cipher(string,string,int);  // encrypting each letter recursively
+string encrypt(string,string);      // normal encryption
 
 // decryption function
-
-string decrypt_vegenier_cipher(string,string);
+string decrypt(string,string);
 
 
 
 int main(){
     cout << "Enter text: "; string txt; getline(cin,txt);
 
-    string ctxt = vegenier_cipher(txt,"key");
+    string ctxt = encrypt(txt,"key");
     cout << "Encrypted text: " << ctxt << endl;
 
-    cout << "Decrypted text: " << decrypt_vegenier_cipher(ctxt,"key") << endl;
+    cout << "Decrypted text: " << decrypt(ctxt,"key") << endl;
 
     return 0;
 }
@@ -38,7 +36,7 @@ string convert_lower(string& txt){
 // ============================================================================================
 
 // original encryption function
-string vegenier_cipher(string plaintext, string key){
+string encrypt(string plaintext, string key){
     plaintext = convert_lower(plaintext); key = convert_lower(key);
 
     string ctxt = ""; 
@@ -49,17 +47,11 @@ string vegenier_cipher(string plaintext, string key){
     return ctxt;
 }
 
-// encrypt each letter recursively (optional)
-string vegenier_cipher(string ptxt, string key, int itr){
-    if(itr == key.length()) return "";
-    // given that all letters are in lower case
-    return char(int(ptxt[itr]) + (int(ptxt[itr])+int(key[itr%key.length()])- 2*97)%26) + vegenier_cipher(ptxt,key,itr+1);
-}
 
 // decrypton algorithm 
 // =============================================================================================
 
-string decrypt_vegenier_cipher(string ciphertext, string key){
+string decrypt(string ciphertext, string key){
     ciphertext = convert_lower(ciphertext); key = convert_lower(key);
 
     string plaintext = "";

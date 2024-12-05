@@ -29,68 +29,87 @@ int main(){
 
 // encryption method
 
-vector<int> convert_letters_to_num(string text){
-    vector<int> vec;
-     
-    for(char i:text){
 
-        int ch = int(i);
-        
-        _asm{
-            xor eax, eax
-            mov ax, [ch]
+vector<int> convert_letters_to_num(string text) {
+	vector<int> vec;
 
-            ;if
-                cmp ax, 64
-                jng _else
-                cmp ax, 91
-                jnl _else
-                    sub eax, 65
-                jmp _skip
-            _else:
-                    sub eax, 97
-            _skip:
-                mov [ch], ax
-        }
+	for (char i : text) {
 
-        vec.push_back(ch);
-    } 
-    return vec;
+		int character = int(i);
+
+		_asm {
+			xor eax, eax
+			mov eax, [character]
+
+			; if
+			cmp eax, 64
+			jng _else
+			cmp eax, 91
+			jnl _else
+			sub eax, 65
+			jmp _skip
+			_else :
+			sub eax, 97
+				_skip :
+				mov[character], eax
+		}
+
+		vec.push_back(character);
+	}
+	return vec;
 }
 
-string encrypt(string plaintext, int shift){
-    auto str_vec = convert_letters_to_num(plaintext); string ciphertext = "";
 
-    for(auto i:str_vec){
 
-        _asm{
-            xor eax, eax
+string encrypt(string plaintext, int shift) {
+	 
+	_asm {
+		xor eax, eax
+		xor edx, edx
+		xor ebx, ebx
 
-            mov ax, [shift]
-            div 26
-            add edx, i
-            add edx, 97
+		mov ebx, 26
+		mov eax, [shift]
+			
+		cdq 
+		idiv ebx
 
-            mov [i], edx
-        }
+		mov [shift], edx
+	}
+	
+	string ciphertext = "";
+	auto str_vec = convert_letters_to_num(plaintext);
+	for (char i : str_vec) {
+		
+		int character = int(i);
+		
+		_asm {
+			xor eax, eax
+			mov eax, [character]
 
-        ciphertext += char(i);
-    }  
-    
-    return ciphertext;
+			add eax, [shift]
+			add eax, 97
+
+			mov [character], eax
+		}
+
+		ciphertext += char(character);
+	}
+	
+	return ciphertext;
 }
 
 
 // decryption method
 
-string decrypt(string ciphertext, int shift){
+string decrypt(string ciphertext, int shift) {
 
-    _asm{
-        xor eax, eax 
-        mov ax, [shift]
-        neg ax 
-        mov [shift], ax
-    }
+	_asm {
+		xor eax, eax
+		mov eax, [shift]
+		neg eax
+		mov [shift], eax
+	}
 
-    return encrypt(ciphertext,shift);
+	return encrypt(ciphertext, shift);
 }
