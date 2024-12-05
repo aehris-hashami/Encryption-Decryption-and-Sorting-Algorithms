@@ -150,8 +150,7 @@ vector<string> string_sharding(string ptxt, int lps) {
       mov [end], ax
     }
 
-    string temp = substring(ptxt, start, end);
-    shards.push_back(temp);
+    shards.push_back(substring(ptxt, start, end));
   }
   return shards;
 }
@@ -216,7 +215,7 @@ vector<vector<int>> transpose(vector<vector<int>> matrix) {
 
       int *trans = &transpose[i][j], *mat = &matrix[j][i];
 
-      __asm {
+      _asm {
           xor esi, esi
           mov esi, [mat]
           mov [trans], esi
