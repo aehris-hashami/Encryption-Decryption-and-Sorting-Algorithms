@@ -7,10 +7,13 @@ read_string PROTO, input_buffer: PTR BYTE
 center_rows PROTO
 delay_time PROTO, seconds: DWORD
 
+; C++ functions used here
+
 ; These prototypes do not work when linking with C++
 
 ;@Cipher_UI@4 PROTO
 ;@SignUp_UI@8 PROTO
+;@Show_Ciphertext@4 PROTO
 ;@Login_UI@8 PROTO
 ;@Run_UI@0 PROTO
 
@@ -49,7 +52,7 @@ delay_time PROTO, seconds: DWORD
     msg_username_fail BYTE "The username you have entered is invalid. Please try again.", 0
     msg_password_fail BYTE "The password you have entered is invalid. Please try again.", 0
     msg_signup_success BYTE "Your credentials have been registered successfully!", 0
-    msg_encrypt_pass BYTE "Your encrypted password is: ", 0
+    msg_encrypt_pass BYTE "Your encrypted password is:", 0
     msg_login_success BYTE "You have been logged in successfully!", 0
 
     username BYTE MAX_SIZE+1 DUP(0)
@@ -57,6 +60,8 @@ delay_time PROTO, seconds: DWORD
 
     secret_name BYTE MAX_SIZE+1 DUP(0)
     secret_pass BYTE MAX_SIZE+1 DUP(0)
+
+    cipher_pass BYTE MAX_SIZE+1 DUP(0)
 
 .code
     print_tabbed PROC str_ptr: PTR BYTE, indent: BYTE, newline: BYTE
@@ -246,6 +251,12 @@ delay_time PROTO, seconds: DWORD
         invoke print_centered, OFFSET msg_signup_success, 1, 1
         invoke print_centered, OFFSET border, 1, 1
 
+        invoke Str_copy, ebx, OFFSET cipher_pass
+        mov ecx, OFFSET cipher_pass
+
+        call CRLF
+        call @Show_Ciphertext@4
+        
         call CRLF
         call WaitMsg
 
@@ -255,8 +266,21 @@ delay_time PROTO, seconds: DWORD
     ;OPTION LANGUAGE: C
 
     ;OPTION LANGUAGE: syscall
+    @Show_Ciphertext@4 PROC
+        enter 0,0
+ 
+        invoke print_centered, OFFSET msg_encrypt_pass, 1, 1
+        invoke print_centered, ecx, 1, 0
+
+        leave
+        ret
+    @Show_Ciphertext@4 ENDP
+    ;OPTION LANGUAGE: C
+
+    ;OPTION LANGUAGE: syscall
     @Login_UI@8 PROC
         enter 0,0
+
         ui_loop:
         push edx
         push ecx
@@ -332,7 +356,8 @@ delay_time PROTO, seconds: DWORD
 
         call @Login_UI@8
 
-        invoke ExitProcess, 0
+        mov eax, 0
+        ret
     main ENDP
 
 END main
