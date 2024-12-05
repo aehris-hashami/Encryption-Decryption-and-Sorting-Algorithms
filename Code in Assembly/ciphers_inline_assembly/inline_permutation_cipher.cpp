@@ -61,192 +61,219 @@ int main() { // testing
 // encryptions methods
 
 bool check_identity_mat(vector<vector<int>> matrix) {
-  for (int i = 0; i < matrix.size(); i++)
-    if (matrix[i][i] != 1)
-      return false;
-  return true;
+    for (int i = 0; i < matrix.size(); i++) if (matrix[i][i] != 1) return false;
+    return true;
 }
 
 bool find(vector<int> vec, int search_key) {
-  for (auto i : vec)
-    if (i == search_key)
-      return true;
-  return false;
-}
 
-vector<int> gen_rand_indicies(int dimensions) {
-  vector<int> vec;
-  srand(time(0));
-
-  for (int i = 0; i < dimensions;) {
-    int r = rand() % dimensions;
-    if (!find(vec, r)) {
-      vec.push_back(r);
-
-      _asm {
-        xor eax, eax
-        mov ax, [i]
-        inc ax
-        mov [i], ax
-      }
-    }
-  }
-
-  return vec;
-}
-
-vector<vector<int>> gen_shuffling_transformation_mat(vector<int> randind_vec,
-                                                     int dimensions) {
-  vector<vector<int>> shuffling_matrix(
-      dimensions, vector<int>(dimensions, 0)); // initializing matrix
-
-  for (int i = 0; i < dimensions; i++) {
-
-    int val = shuffling_matrix[randind_vec[i]][i];
+    int
+        boolean_val = 0,
+        len = vec.size(),
+        *arr = vec.data();
 
     _asm {
-      xor eax, eax
-      mov ax, [val]
-      inc ax
-      mov [val], ax
-    }
-  }
+        xor eax, eax
+        xor ecx, ecx
 
-  return shuffling_matrix;
+        mov esi, [arr]
+        mov ecx, [len]
+
+        ; if 
+            cmp ecx, 0
+            jnz _not_empty
+
+                mov [boolean_val], ecx
+                jmp _break_from_loop
+
+            _not_empty:
+        
+        _for:
+
+            mov eax, [esi]
+            ; if
+                cmp eax, [search_key]
+                jnz _skip
+                   
+                    mov eax, [boolean_val]
+                    inc eax
+                    mov[boolean_val], eax
+                    jmp _break_from_loop
+                
+            _skip :
+
+            add esi, 4
+        loop _for
+        _break_from_loop :
+    }
+
+    return bool(boolean_val);
+}
+
+
+vector<int> gen_rand_indicies(int dimensions) {
+    vector<int> vec; srand(time(0));
+
+    for (int i = 0; i < dimensions;) {
+        int r = rand();
+
+        _asm {
+            xor eax, eax
+            xor ecx, ecx
+
+            mov eax, [r]
+            mov ecx, [dimensions]
+            cdq
+            div ecx
+            mov [r], edx
+        }
+
+        if (!find(vec, r)) { 
+            vec.push_back(r); 
+            
+            _asm {
+                mov eax, [i]
+                inc eax
+                mov [i], eax
+            }
+        }
+    }
+
+    return vec;
+}
+
+vector<vector<int>> gen_shuffling_transformation_mat(vector<int> randind_vec, int dimensions) {
+    vector<vector<int>> shuffling_matrix(dimensions, vector<int>(dimensions, 0)); // initializing matrix
+
+    for (int i = 0; i < dimensions; i++) {
+        int temp = shuffling_matrix[randind_vec[i]][i];
+        _asm {
+            xor eax, eax
+            mov eax, [temp]
+            inc eax
+            mov [temp], eax
+        }
+        shuffling_matrix[randind_vec[i]][i] = temp ;
+    }
+    return shuffling_matrix;
 }
 
 string substring(string str, int start, int end) {
-  string substr = "";
+    string substr = "";
 
-  for (int i = start - 1; i < end; i++)
-    substr += str[i];
+    for (int i = start - 1; i < end; i++) substr += str[i];
 
-  return substr;
+    return substr;
 }
 
 vector<string> string_sharding(string ptxt, int lps) {
-  // lps stands for "letters per segment".
-  vector<string> shards;
-  int itr = 0;
+    // lps stands for "letters per segment".
+    vector<string> shards; int itr = 0;
 
-  if (ptxt.length() % lps != 0)
-    itr++;
+    if (ptxt.length() % lps != 0) itr++; itr += ptxt.length() / lps;
 
-  itr += ptxt.length() / lps;
-  for (int i = 1; i <= itr; i++) {
-    int start, end;
-
-    _asm {
-      xor eax, eax
-      mov ax, [i]
-        dec ax
-        mul [lps]
-        inc ax
-      mov [start], ax
-
-      xor eax, eax
-      mov ax, [lps]
-        mul [i]
-      mov [end], ax
-    }
-
-    string temp = substring(ptxt, start, end);
-    shards.push_back(temp);
-  }
-  return shards;
+    for (int i = 1; i <= itr; i++) {
+        string temp = substring(ptxt, lps * (i - 1) + 1, lps * i);
+        shards.push_back(temp);
+    } return shards;
 }
 
 string applying_transformation(vector<vector<int>> mat, string str) {
-  string result = "";
-  for (int i = 0; i < mat.size(); i++) {
-    for (int j = 0; j < mat.size(); j++)
-      if (char(mat[i][j] * (int(str[j]))) != '\0')
-        result += char(mat[i][j] * (int(str[j])));
-  }
-  return result;
+    string result = "";
+    for (int i = 0; i < mat.size(); i++) {
+        for (int j = 0; j < mat.size(); j++)
+            if (char(mat[i][j] * (int(str[j]))) != '\0') result += char(mat[i][j] * (int(str[j])));
+    }return result;
 }
 
-void adjusting_length(string &str, int length) {
-  for (int i = 0; i < length; i++)
-    str += " ";
+void adjusting_length(string& str, int length) {
+    for (int i = 0; i < length; i++) str += " ";
 }
 
 vector<vector<int>> gen_permutaing_matrix(int dimension) {
-  srand(time(0));
-  vector<vector<int>> matrix;
+    srand(time(0)); vector<vector<int>> matrix;
 
-  while (1) {
-    matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension),
-                                              dimension);
-    if (!check_identity_mat(matrix))
-      break;
-  }
+    while (1) {
+        matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension), dimension);
+        if (!check_identity_mat(matrix)) break;
+    }
 
-  return matrix;
+    return matrix;
 }
 
 string encrypt(string plaintext, vector<vector<int>> matrix) {
 
-  // adjusting the length of the plaintext for ease of encrypting and decrypting
-  adjusting_length(plaintext,
-                   matrix.size() - plaintext.length() % matrix.size());
+    // adjusting the length of the plaintext for ease of encrypting and decrypting
+    adjusting_length(plaintext, matrix.size() - plaintext.length() % matrix.size());
 
-  // shard the plaintext into peices
-  vector<string> shards = string_sharding(plaintext, matrix.size());
+    // shard the plaintext into peices
+    vector<string> shards = string_sharding(plaintext, matrix.size());
 
-  // shuffle the letters within the shards
-  vector<string> shuffled_shards;
-  for (auto i : shards)
-    shuffled_shards.push_back(applying_transformation(matrix, i));
+    // shuffle the letters within the shards
+    vector<string> shuffled_shards;
+    for (auto i : shards) shuffled_shards.push_back(applying_transformation(matrix, i));
 
-  // concatenate all shuffled shards to a single ciphered string
-  string cipher_text = "";
-  for (auto i : shuffled_shards)
-    cipher_text += i;
-  return cipher_text;
+    // concatenate all shuffled shards to a single ciphered string
+    string cipher_text = ""; for (auto i : shuffled_shards) cipher_text += i;
+    return cipher_text;
+
 }
 
 // decrypting method
 
 vector<vector<int>> transpose(vector<vector<int>> matrix) {
-  vector<vector<int>> transpose(matrix.size(), vector<int>(matrix.size(), 0));
+    vector<vector<int>> transpose(matrix.size(), vector<int>(matrix.size(), 0));
+  
+    for (int i = 0; i < matrix.size(); i++) for (int j = 0; j < matrix.size(); j++) {
+        int 
+            temp = matrix[i][j], 
+            size = matrix.size(), 
+            *arr = transpose[j].data();
 
-  for (int i = 0; i < matrix.size(); i++)
-    for (int j = 0; j < matrix.size(); j++) {
+        _asm {
+            ; geting the index of 2D 
+            mov eax, [i]
 
-      int *trans = &transpose[i][j], *mat = &matrix[j][i];
+            ; calculating the address at that index
+            mov ecx, 4
+            mul ecx
 
-      __asm {
-          xor esi, esi
-          mov esi, [mat]
-          mov [trans], esi
-      }
+            ; assignig the value
+            mov ecx, [temp]
+
+            mov esi, [arr]
+            add esi, eax
+
+            mov [esi], ecx
+        }
     }
 
-  return transpose;
+    return transpose;
 }
 
-void trim_right(string &str) { str.erase(str.find_last_not_of(" ") + 1); }
+void trim_right(string& str) { str.erase(str.find_last_not_of(" ") + 1); }
+
 
 string decrypt(string ciphertext, vector<vector<int>> mat) {
-  // get the transpose of the matrix
-  vector<vector<int>> transpose_mat = transpose(mat);
+    // get the transpose of the matrix
+    vector<vector<int>> transpose_mat = transpose(mat);
 
-  // break down the cipher text into apropriate segments
-  vector<string> cipher_shards = string_sharding(ciphertext, mat.size());
+    for (int i = 0; i < mat.size(); i++) { for (auto i : transpose_mat[i]) cout << i << ' '; cout << endl; } cout << endl;
 
-  // apply transformation to individual cipher segments
-  vector<string> plain_shards;
-  for (auto i : cipher_shards)
-    plain_shards.push_back(applying_transformation(transpose_mat, i));
+    // break down the cipher text into apropriate segments
+    vector<string> cipher_shards = string_sharding(ciphertext, mat.size());
 
-  // concatenate all the transformed segments and return it
-  string plaintext = "";
-  for (auto i : plain_shards)
-    plaintext += i;
+    // apply transformation to individual cipher segments
+    vector<string> plain_shards; for (auto i : cipher_shards) plain_shards.push_back(applying_transformation(transpose_mat, i));
 
-  // triming the extra added white spaces (if there is present)
-  trim_right(plaintext);
+    // concatenate all the transformed segments and return it
+    string plaintext = ""; for (auto i : plain_shards) plaintext += i;
 
-  return plaintext;
+    // triming the extra added white spaces (if there is present)
+    trim_right(plaintext);
+
+
+    return plaintext;
 }
+
+
