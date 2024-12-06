@@ -29,7 +29,6 @@ int main(){
 
 // encryption method
 
-
 vector<int> convert_letters_to_num(string text) {
 	vector<int> vec;
 
