@@ -55,6 +55,11 @@ string permute_decrypt(string, vector<vector<int>>);
 
 // ===================================================
 
+
+// filing functions
+const char* getPassword(char*);
+int writeUsernamePassword(char*, char*);
+
 int main(int argc, char** argv) {
     char*
         pass_str = new char[100],
@@ -68,30 +73,126 @@ int main(int argc, char** argv) {
     // encrypt user password with cipher according to switch case/user input
 
     
-    
+    int shift_key = 0;                      // for shift cipher
+    string shift_strkey = "";               // for vegenier cipher
+    vector<vector<int>> key_matrix;         // for permutation cipher and hill cipher
+
+    string enc_pass = pass_str;
+
     switch (cipher_type) {
         case 1:
+            // shift cipher
+            shift_key = rand() % 26;
+            enc_pass = shift_encrypt(enc_pass, shift_key);
         case 2:
+            // vegenier cipher
+            for (int i = 0; i < 3; i++) shift_strkey += char(rand() % 26 + 97);
+            enc_pass = vgr_encrypt(enc_pass, shift_strkey);
         case 3:
+            // permutation cipher
+            int dimensions = rand() % enc_pass.size() + 2;
+            key_matrix = gen_permutaing_matrix(dimensions);
+
+            enc_pass = permute_encrypt(enc_pass, key_matrix);
         case 4:
+            // hill cipher
+            cout << "\nThis cipher cannot be run due to computational incompatibility.\n";
         case 5:
+            // rsa algorithm
+            cout << "\nTo be constructed, but can be explained in viva regarding on the working of the algorithm.\n";
     }
     
 
     // write encrypted password to 
-    string usr_password = pass_str;
-    writeUsernamePassword(user_str, usr_password.c_str());
+    writeUsernamePassword(user_str, enc_pass.c_str());
 
     // read encrypted password from file
     usr_password = getPassword(user_str);
   
     // decrypt read ciphertext
-    //string dec_password = decrypt(usr_password, matrix);
+    
+    string dec_pass; 
+    
+    switch (cipher_type) {
+        case 1:
+            dec_pass = shift_decrypt(enc_pass, shift_key);
+        case 2:
+            dec_pass = vgr_decrypt(enc_pass, shift_strkey);
+        case 3:
+            dec_pass = permute_decrypt(enc_pass, key_matrix);
+        default:
+            cout << "\nEncryption not applied yet\n";
+    }
 
     // Run Login UI, passing decrypted plaintext as argument
 
     return 0;
 }
+
+
+// filing functions
+
+
+int writeUsernamePassword(char* username, char* password)
+{
+    fstream fileU("Usernames.txt", ios::out);
+    fstream fileP("Passwords.txt", ios::out);
+
+    if (!fileU.is_open() || !fileP.is_open())
+    {
+        cerr << "Unable to access files\n";
+        return -1;
+    }
+
+    fileU << username << "\n";
+    fileP << password << "\n";
+
+    return 0;
+}
+
+
+
+const char* getPassword(char* username)
+{
+    fstream fileU("Usernames.txt", ios::in);
+    fstream fileP("Passwords.txt", ios::in);
+
+    string str = "NONE";
+
+    if (!fileU.is_open() || !fileP.is_open())
+    {
+        cerr << "Unable to access files\n";
+        return str.c_str();
+    }
+
+    int count = 0;
+
+    while (getline(fileU, str))
+    {
+        if (!strcmp(str.c_str(), username))
+        {
+            int i = 0;
+
+            while (getline(fileP, str))
+            {
+                if (i == count)
+                {
+                    return str.c_str();
+                }
+
+                i++;
+            }
+        }
+
+        count++;
+    }
+
+    return "NONE";
+
+}
+
+
+
 
 
 // Cipher and utility function definitions
@@ -278,8 +379,6 @@ string vrg_decrypt(string ciphertext, string key) {
             c = int(ciphertext[i]),
             k = int(key[i % key.length()]);
 
-        //   plaintext += (ciphertext[i] == ' ')? (' ') : char((int(ciphertext[i]) - int(key[i%key.length()]) + 26)%26 + 97);
-
         _asm {
             xor eax, eax
             xor ecx, ecx
@@ -344,23 +443,24 @@ bool find(vector<int> vec, int search_key) {
 
         _not_empty :
 
-    _for:
+        _for:
 
-        mov eax, [esi]
-            ; if
-            cmp eax, [search_key]
-            jnz _skip
+            mov eax, [esi]
 
-            mov eax, [boolean_val]
-            inc eax
-            mov[boolean_val], eax
-            jmp _break_from_loop
+             ; if
+                cmp eax, [search_key]
+                jnz _skip
+
+                    mov eax, [boolean_val]
+                    inc eax
+                    mov[boolean_val], eax
+                    jmp _break_from_loop
 
             _skip :
 
-        add esi, 4
-            loop _for
-            _break_from_loop :
+            add esi, 4
+         loop _for
+        _break_from_loop :
     }
 
     return bool(boolean_val);
