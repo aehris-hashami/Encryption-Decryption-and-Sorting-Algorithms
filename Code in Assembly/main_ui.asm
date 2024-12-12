@@ -173,6 +173,7 @@ delay_time PROTO, seconds: DWORD
         ret
     delay_time ENDP
 
+    OPTION LANGUAGE: syscall
     @Cipher_UI@0 PROC
         enter 0,0
 
@@ -221,8 +222,9 @@ delay_time PROTO, seconds: DWORD
         call WaitMsg
         jmp ui_loop
     @Cipher_UI@0 ENDP
-
-    ;OPTION LANGUAGE: syscall
+    OPTION LANGUAGE: C
+    
+    OPTION LANGUAGE: syscall
     @SignUp_UI@8 PROC
         enter 0,0
         push edx
@@ -261,9 +263,9 @@ delay_time PROTO, seconds: DWORD
         leave
         ret
     @SignUp_UI@8 ENDP
-    ;OPTION LANGUAGE: C
+    OPTION LANGUAGE: C
 
-    ;OPTION LANGUAGE: syscall
+    OPTION LANGUAGE: syscall
     @Show_Ciphertext@4 PROC
         enter 0,0
  
@@ -273,9 +275,9 @@ delay_time PROTO, seconds: DWORD
         leave
         ret
     @Show_Ciphertext@4 ENDP
-    ;OPTION LANGUAGE: C
+    OPTION LANGUAGE: C
 
-    ;OPTION LANGUAGE: syscall
+    OPTION LANGUAGE: syscall
     @Login_UI@8 PROC
         enter 0,0
 
@@ -326,7 +328,7 @@ delay_time PROTO, seconds: DWORD
         leave
         ret
     @Login_UI@8 ENDP
-    ;OPTION LANGUAGE: C
+    OPTION LANGUAGE: C
 
     ;OPTION LANGUAGE: syscall
     ;@Run_UI@0 PROC
@@ -340,22 +342,22 @@ delay_time PROTO, seconds: DWORD
     ;@Run_UI@0 ENDP
     ;OPTION LANGUAGE: C
 
-    main PROC
-        call @Cipher_UI@0
-        mov ecx, OFFSET secret_name
-        mov edx, OFFSET secret_pass
+    ;main PROC
+    ;    call @Cipher_UI@0
+    ;    mov ecx, OFFSET secret_name
+    ;    mov edx, OFFSET secret_pass
 
-        call @SignUp_UI@8
+    ;    call @SignUp_UI@8
         ;invoke @SignUp_UI@4, OFFSET secret_pass
         ;call @Login_UI@4
 
-        mov ecx, OFFSET secret_name
-        mov edx, OFFSET secret_pass
+    ;    mov ecx, OFFSET secret_name
+    ;    mov edx, OFFSET secret_pass
 
-        call @Login_UI@8
+    ;    call @Login_UI@8
 
-        mov eax, 0
-        ret
-    main ENDP
+    ;    mov eax, 0
+    ;    ret
+    ;main ENDP
 
-END main
+END

@@ -8,6 +8,7 @@
 using namespace std;
 extern "C" int __fastcall Cipher_UI();
 extern "C" void __fastcall SignUp_UI(char*, char*);
+extern "C" void __fastcall Show_Ciphertext(const char*);
 extern "C" void __fastcall Login_UI(char*, const char*);
 
 
@@ -109,7 +110,8 @@ int main() {
             // rsa algorithm
             //cout << "\nWork in Progress, but can be explained in viva regarding on the working of the algorithm.\n";
     }
-    
+    // Show encrypted ciphertext
+    Show_Ciphertext(enc_pass.c_str());    
 
     // write encrypted password to 
     writeUsernamePassword(user_str, enc_pass.c_str());
