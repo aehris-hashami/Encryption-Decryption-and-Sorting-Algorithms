@@ -4,12 +4,11 @@
 #include <string>
 #include <cstdlib>
 #include <fstream>
-#include <cstring>
 
 using namespace std;
 extern "C" int __fastcall Cipher_UI();
 extern "C" void __fastcall SignUp_UI(char*, char*);
-extern "C" void __fastcall Login_UI();
+extern "C" void __fastcall Login_UI(char*, const char*);
 
 
 // shift cipher
@@ -50,17 +49,17 @@ void trim_right(string&);
 vector<vector<int>> gen_permutaing_matrix(int);
 
 // encrypting & decryption algorithm 
-string permute_ncrypt(string, vector<vector<int>>);
+string permute_encrypt(string, vector<vector<int>>);
 string permute_decrypt(string, vector<vector<int>>);
 
 // ===================================================
 
 
 // filing functions
-const char* getPassword(char*);
-int writeUsernamePassword(char*, char*);
+string getPassword(char*);
+int writeUsernamePassword(char*, const char*);
 
-int main(int argc, char** argv) {
+int main() {
     char*
         pass_str = new char[100],
         * user_str = new char[100];
@@ -80,26 +79,35 @@ int main(int argc, char** argv) {
     string enc_pass = pass_str;
 
     switch (cipher_type) {
-        case 1:
+        case 1: {
             // shift cipher
             shift_key = rand() % 26;
             enc_pass = shift_encrypt(enc_pass, shift_key);
-        case 2:
+            break;
+        }
+
+        case 2: {
             // vegenier cipher
             for (int i = 0; i < 3; i++) shift_strkey += char(rand() % 26 + 97);
             enc_pass = vgr_encrypt(enc_pass, shift_strkey);
-        case 3:
+            break;
+        }
+
+        case 3: {
             // permutation cipher
             int dimensions = rand() % enc_pass.size() + 2;
             key_matrix = gen_permutaing_matrix(dimensions);
 
             enc_pass = permute_encrypt(enc_pass, key_matrix);
-        case 4:
+            break;
+        }
+
+        case 4: break;
             // hill cipher
-            cout << "\nThis cipher cannot be run due to computational incompatibility.\n";
-        case 5:
+            //cout << "\nThis cipher cannot be run due to computational incompatibility.\n";
+        case 5: break;
             // rsa algorithm
-            cout << "\nTo be constructed, but can be explained in viva regarding on the working of the algorithm.\n";
+            //cout << "\nWork in Progress, but can be explained in viva regarding on the working of the algorithm.\n";
     }
     
 
@@ -107,24 +115,32 @@ int main(int argc, char** argv) {
     writeUsernamePassword(user_str, enc_pass.c_str());
 
     // read encrypted password from file
-    usr_password = getPassword(user_str);
+    string dec_pass = getPassword(user_str);
   
     // decrypt read ciphertext
     
-    string dec_pass; 
-    
     switch (cipher_type) {
-        case 1:
-            dec_pass = shift_decrypt(enc_pass, shift_key);
-        case 2:
-            dec_pass = vgr_decrypt(enc_pass, shift_strkey);
-        case 3:
-            dec_pass = permute_decrypt(enc_pass, key_matrix);
-        default:
-            cout << "\nEncryption not applied yet\n";
+        case 1: {
+            dec_pass = shift_decrypt(dec_pass, shift_key);
+            break;
+        }
+
+        case 2: {
+            dec_pass = vgr_decrypt(dec_pass, shift_strkey);
+            break;
+        }
+
+        case 3: {
+            dec_pass = permute_decrypt(dec_pass, key_matrix);
+            break;
+        }
+
+        default: break;
+            //cout << "\nEncryption not applied yet\n";
     }
 
     // Run Login UI, passing decrypted plaintext as argument
+    Login_UI(user_str, dec_pass.c_str());
 
     return 0;
 }
@@ -133,16 +149,11 @@ int main(int argc, char** argv) {
 // filing functions
 
 
-int writeUsernamePassword(char* username, char* password)
-{
+int writeUsernamePassword(char* username, const char* password) {
     fstream fileU("Usernames.txt", ios::out);
     fstream fileP("Passwords.txt", ios::out);
 
-    if (!fileU.is_open() || !fileP.is_open())
-    {
-        cerr << "Unable to access files\n";
-        return -1;
-    }
+    if (!fileU.is_open() || !fileP.is_open()) return -1;
 
     fileU << username << "\n";
     fileP << password << "\n";
@@ -152,43 +163,22 @@ int writeUsernamePassword(char* username, char* password)
 
 
 
-const char* getPassword(char* username)
-{
+string getPassword(char* username) {
     fstream fileU("Usernames.txt", ios::in);
     fstream fileP("Passwords.txt", ios::in);
 
     string str = "NONE";
 
-    if (!fileU.is_open() || !fileP.is_open())
-    {
-        cerr << "Unable to access files\n";
-        return str.c_str();
-    }
+    if (!fileU.is_open() || !fileP.is_open()) return str.c_str();
 
-    int count = 0;
-
-    while (getline(fileU, str))
-    {
-        if (!strcmp(str.c_str(), username))
-        {
-            int i = 0;
-
-            while (getline(fileP, str))
-            {
-                if (i == count)
-                {
-                    return str.c_str();
-                }
-
-                i++;
-            }
+    for (int count=0; getline(fileU, str); count++){
+        if (!strcmp(str.c_str(), username)){
+            for (int i=0; getline(fileP, str); i++)
+                if (i == count) return str;
         }
-
-        count++;
     }
 
-    return "NONE";
-
+    return str;
 }
 
 
@@ -207,10 +197,9 @@ vector<int> convert_letters_to_num(string text) {
     vector<int> vec;
 
     for (char i : text) {
-
         int character = int(i);
 
-        _asm {
+        __asm {
             xor eax, eax
             mov eax, [character]
 
@@ -235,8 +224,7 @@ vector<int> convert_letters_to_num(string text) {
 
 
 string shift_encrypt(string plaintext, int shift) {
-
-    _asm {
+    __asm {
         xor eax, eax
         xor edx, edx
         xor ebx, ebx
@@ -256,7 +244,7 @@ string shift_encrypt(string plaintext, int shift) {
 
         int character = int(i);
 
-        _asm {
+        __asm {
             xor eax, eax
             mov eax, [character]
 
@@ -276,15 +264,14 @@ string shift_encrypt(string plaintext, int shift) {
 // decryption method
 
 string shift_decrypt(string ciphertext, int shift) {
-
-    _asm {
+    __asm {
         xor eax, eax
         mov eax, [shift]
         neg eax
         mov[shift], eax
     }
 
-    return encrypt(ciphertext, shift);
+    return shift_encrypt(ciphertext, shift);
 }
 
 // ===================================================
@@ -296,7 +283,6 @@ string shift_decrypt(string ciphertext, int shift) {
 
 string convert_lower(string& txt) {
     for (int i = 0; i <int(txt.size()); i++) {
-
         int character = int(txt[i]);
 
         __asm {
@@ -313,6 +299,7 @@ string convert_lower(string& txt) {
             _skip :
         }
     }
+
     return txt;
 }
 
@@ -327,13 +314,12 @@ string vrg_encrypt(string plaintext, string key) {
     string ctxt = "";
 
     for (int i = 0; i < int(plaintext.length()); i++) {
-
         int
             character = 0,
             p = int(plaintext[i]),
             k = int(key[i % key.length()]);
 
-        _asm {
+        __asm {
             xor eax, eax
             xor ebx, ebx
             xor ecx, ecx
@@ -361,6 +347,7 @@ string vrg_encrypt(string plaintext, string key) {
 
         ctxt += char(character);
     }
+
     return ctxt;
 }
 
@@ -379,7 +366,7 @@ string vrg_decrypt(string ciphertext, string key) {
             c = int(ciphertext[i]),
             k = int(key[i % key.length()]);
 
-        _asm {
+        __asm {
             xor eax, eax
             xor ecx, ecx
             xor edx, edx
@@ -421,13 +408,12 @@ bool check_identity_mat(vector<vector<int>> matrix) {
 }
 
 bool find(vector<int> vec, int search_key) {
-
     int
         boolean_val = 0,
         len = vec.size(),
         * arr = vec.data();
 
-    _asm {
+    __asm {
         xor eax, eax
         xor ecx, ecx
 
@@ -473,7 +459,7 @@ vector<int> gen_rand_indicies(int dimensions) {
     for (int i = 0; i < dimensions;) {
         int r = rand();
 
-        _asm {
+        __asm {
             xor eax, eax
             xor ecx, ecx
 
@@ -487,7 +473,7 @@ vector<int> gen_rand_indicies(int dimensions) {
         if (!find(vec, r)) {
             vec.push_back(r);
 
-            _asm {
+            __asm {
                 mov eax, [i]
                 inc eax
                 mov[i], eax
@@ -503,7 +489,8 @@ vector<vector<int>> gen_shuffling_transformation_mat(vector<int> randind_vec, in
 
     for (int i = 0; i < dimensions; i++) {
         int temp = shuffling_matrix[randind_vec[i]][i];
-        _asm {
+
+        __asm {
             xor eax, eax
             mov eax, [temp]
             inc eax
@@ -531,15 +518,20 @@ vector<string> string_sharding(string ptxt, int lps) {
     for (int i = 1; i <= itr; i++) {
         string temp = substring(ptxt, lps * (i - 1) + 1, lps * i);
         shards.push_back(temp);
-    } return shards;
+    }
+    
+    return shards;
 }
 
 string applying_transformation(vector<vector<int>> mat, string str) {
     string result = "";
+
     for (int i = 0; i < mat.size(); i++) {
         for (int j = 0; j < mat.size(); j++)
             if (char(mat[i][j] * (int(str[j]))) != '\0') result += char(mat[i][j] * (int(str[j])));
-    }return result;
+    }
+    
+    return result;
 }
 
 void adjusting_length(string& str, int length) {
@@ -549,7 +541,7 @@ void adjusting_length(string& str, int length) {
 vector<vector<int>> gen_permutaing_matrix(int dimension) {
     srand(time(0)); vector<vector<int>> matrix;
 
-    while (1) {
+    while (true) {
         matrix = gen_shuffling_transformation_mat(gen_rand_indicies(dimension), dimension);
         if (!check_identity_mat(matrix)) break;
     }
@@ -571,6 +563,7 @@ string permute_encrypt(string plaintext, vector<vector<int>> matrix) {
 
     // concatenate all shuffled shards to a single ciphered string
     string cipher_text = ""; for (auto i : shuffled_shards) cipher_text += i;
+
     return cipher_text;
 
 }
@@ -586,7 +579,7 @@ vector<vector<int>> transpose(vector<vector<int>> matrix) {
             size = matrix.size(),
             * arr = transpose[j].data();
 
-        _asm {
+        __asm {
             ; geting the index of 2D
             mov eax, [i]
 

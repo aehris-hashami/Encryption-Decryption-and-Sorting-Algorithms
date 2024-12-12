@@ -173,7 +173,7 @@ delay_time PROTO, seconds: DWORD
         ret
     delay_time ENDP
 
-    @Cipher_UI@4 PROC
+    @Cipher_UI@0 PROC
         enter 0,0
 
         ui_loop:
@@ -209,8 +209,6 @@ delay_time PROTO, seconds: DWORD
         cmp eax, 6
         jg invalid_input
 
-        mov ecx, eax
-
         leave
         ret
 
@@ -222,7 +220,7 @@ delay_time PROTO, seconds: DWORD
         call CRLF
         call WaitMsg
         jmp ui_loop
-    @Cipher_UI@4 ENDP
+    @Cipher_UI@0 ENDP
 
     ;OPTION LANGUAGE: syscall
     @SignUp_UI@8 PROC
@@ -343,7 +341,7 @@ delay_time PROTO, seconds: DWORD
     ;OPTION LANGUAGE: C
 
     main PROC
-        call @Cipher_UI@4
+        call @Cipher_UI@0
         mov ecx, OFFSET secret_name
         mov edx, OFFSET secret_pass
 
