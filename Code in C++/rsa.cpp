@@ -31,25 +31,3 @@ int modulo_invers(int a, int modulo){
 
 }
 
-/*
-1.  Excersise and play sports
-2.  Feed off of other peoples' intellegence
-3.* Intellegence = Logic + Creativity
-        Logic:
-            Programming
-            Puzzles and Strategy games (Chess)
-        Creativity:
-            Writing
-            Painting
-            Learning Music
-4.  Journaling and Mind mapping
-5.  Leave and replace bad habits with good ones
-6.  Controling emotions and observe them
-        Practice:
-            Medetation
-            Mindfullness
-7.  Learn watch/observe,listen and grasp/understand
-8.  Keep developing new skill
-9.  Apply present knowledge ruthlessly: knowledge without action is wasted potential
-10. Always have a streigic mindset: many target hits with one arrow 
-*/
