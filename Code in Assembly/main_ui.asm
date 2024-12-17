@@ -7,15 +7,15 @@ read_string PROTO, input_buffer: PTR BYTE
 center_rows PROTO
 delay_time PROTO, seconds: DWORD
 
-; C++ functions used here
+; =============================================
+; MASM Proecdures to be called in C++ code
+; =============================================
 
-; These prototypes do not work when linking with C++
-
-;@Cipher_UI@4 PROTO
-;@SignUp_UI@8 PROTO
-;@Show_Ciphertext@4 PROTO
-;@Login_UI@8 PROTO
-;@Run_UI@0 PROTO
+Cipher_UI PROTO
+Show_Ciphertext PROTO, ptr_cipher_pass: PTR BYTE
+SignUp_UI PROTO, ptr_username: PTR BYTE, ptr_password: PTR BYTE
+Login_UI PROTO, ptr_username: PTR BYTE, ptr_password: PTR BYTE
+;Run_UI PROTO
 
 .data
     MAX_SIZE = 80
@@ -95,6 +95,7 @@ delay_time PROTO, seconds: DWORD
         ret
     print_tabbed ENDP
 
+
     print_centered PROC str_ptr: PTR BYTE, indent: BYTE, newline: BYTE
         LOCAL shift_value: BYTE
         LOCAL length_str: BYTE
@@ -135,6 +136,7 @@ delay_time PROTO, seconds: DWORD
         ret
     print_centered ENDP
 
+
     read_string PROC input_buffer: PTR BYTE
         pushad
 
@@ -145,6 +147,7 @@ delay_time PROTO, seconds: DWORD
         popad
         ret
     read_string ENDP
+
 
     center_rows PROC
         enter 0,0
@@ -163,6 +166,7 @@ delay_time PROTO, seconds: DWORD
         ret
     center_rows ENDP
 
+
     delay_time PROC seconds: DWORD
         push eax
 
@@ -173,8 +177,8 @@ delay_time PROTO, seconds: DWORD
         ret
     delay_time ENDP
 
-    OPTION LANGUAGE: syscall
-    @Cipher_UI@0 PROC
+
+    Cipher_UI PROC
         enter 0,0
 
         ui_loop:
@@ -221,15 +225,18 @@ delay_time PROTO, seconds: DWORD
         call CRLF
         call WaitMsg
         jmp ui_loop
-    @Cipher_UI@0 ENDP
-    OPTION LANGUAGE: C
+    Cipher_UI ENDP
     
-    OPTION LANGUAGE: syscall
-    @SignUp_UI@8 PROC
-        enter 0,0
-        push edx
-        push ecx
 
+    Show_Ciphertext PROC ptr_cipher_pass: PTR BYTE
+        invoke print_centered, OFFSET msg_encrypt_pass, 1, 1
+        invoke print_centered, ptr_cipher_pass, 1, 0
+
+        ret
+    Show_Ciphertext ENDP
+
+
+    SignUp_UI PROC ptr_username: PTR BYTE, ptr_password: PTR BYTE
         call Clrscr
         call center_rows
 
@@ -239,52 +246,25 @@ delay_time PROTO, seconds: DWORD
         invoke print_centered, OFFSET msg_username, 0, 2
         invoke read_string, OFFSET username
 
-        pop ebx
-        invoke Str_copy, OFFSET username, ebx
+        invoke Str_copy, OFFSET username, ptr_username
 
         invoke print_centered, OFFSET msg_password, 0, 0
         invoke read_string, OFFSET password
 
-        pop ebx
-        invoke Str_copy, OFFSET password, ebx
+        invoke Str_copy, OFFSET password, ptr_password
 
         invoke print_centered, OFFSET msg_signup_success, 1, 1
         invoke print_centered, OFFSET border, 1, 1
 
-        invoke Str_copy, ebx, OFFSET cipher_pass
-        mov ecx, OFFSET cipher_pass
-
-        call CRLF
-        call @Show_Ciphertext@4
-        
         call CRLF
         call WaitMsg
 
-        leave
         ret
-    @SignUp_UI@8 ENDP
-    OPTION LANGUAGE: C
+    SignUp_UI ENDP
 
-    OPTION LANGUAGE: syscall
-    @Show_Ciphertext@4 PROC
-        enter 0,0
- 
-        invoke print_centered, OFFSET msg_encrypt_pass, 1, 1
-        invoke print_centered, ecx, 1, 0
 
-        leave
-        ret
-    @Show_Ciphertext@4 ENDP
-    OPTION LANGUAGE: C
-
-    OPTION LANGUAGE: syscall
-    @Login_UI@8 PROC
-        enter 0,0
-
+    Login_UI PROC ptr_username: PTR BYTE, ptr_password: PTR BYTE
         ui_loop:
-        push edx
-        push ecx
-
         call Clrscr
         call center_rows
 
@@ -294,15 +274,13 @@ delay_time PROTO, seconds: DWORD
         invoke print_centered, OFFSET msg_username, 0, 2
         invoke read_string, OFFSET username
 
-        pop ebx
-        invoke Str_compare, OFFSET username, ebx
+        invoke Str_compare, OFFSET username, ptr_username
         jne invalid_username
 
         invoke print_centered, OFFSET msg_password, 0, 0
         invoke read_string, OFFSET password
 
-        pop ebx
-        invoke Str_compare, OFFSET password, ebx
+        invoke Str_compare, OFFSET password, ptr_password
         jne invalid_password
 
         jmp exit_ui_loop
@@ -325,13 +303,10 @@ delay_time PROTO, seconds: DWORD
         call CRLF
         call WaitMsg
 
-        leave
         ret
-    @Login_UI@8 ENDP
-    OPTION LANGUAGE: C
+    Login_UI ENDP
 
-    ;OPTION LANGUAGE: syscall
-    ;@Run_UI@0 PROC
+    ;Run_UI PROC
     ;    enter 0,0
 
     ;    call SignUp_UI
@@ -339,25 +314,6 @@ delay_time PROTO, seconds: DWORD
 
     ;    leave
     ;    ret
-    ;@Run_UI@0 ENDP
-    ;OPTION LANGUAGE: C
-
-    ;main PROC
-    ;    call @Cipher_UI@0
-    ;    mov ecx, OFFSET secret_name
-    ;    mov edx, OFFSET secret_pass
-
-    ;    call @SignUp_UI@8
-        ;invoke @SignUp_UI@4, OFFSET secret_pass
-        ;call @Login_UI@4
-
-    ;    mov ecx, OFFSET secret_name
-    ;    mov edx, OFFSET secret_pass
-
-    ;    call @Login_UI@8
-
-    ;    mov eax, 0
-    ;    ret
-    ;main ENDP
+    ;Run_UI ENDP
 
 END

@@ -12,10 +12,10 @@ using namespace std;
 // ===================================================
 
 extern "C" {
-	int __fastcall Cipher_UI();
-	void __fastcall SignUp_UI(char*, char*);
-	void __fastcall Show_Ciphertext(const char*);
-	void __fastcall Login_UI(char*, const char*);
+	int Cipher_UI();
+	void SignUp_UI(char*, char*);
+	void Show_Ciphertext(const char*);
+	void Login_UI(char*, const char*);
 }
 
 // ===================================================
