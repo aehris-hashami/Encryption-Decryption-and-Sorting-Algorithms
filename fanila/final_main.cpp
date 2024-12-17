@@ -6,12 +6,19 @@
 #include <fstream>
 
 using namespace std;
-extern "C" int __fastcall Cipher_UI();
-extern "C" void __fastcall SignUp_UI(char*, char*);
-extern "C" void __fastcall Show_Ciphertext(const char*);
-extern "C" void __fastcall Login_UI(char*, const char*);
 
+// ===================================================
+// MASM Procedures
+// ===================================================
 
+extern "C" {
+	int __fastcall Cipher_UI();
+	void __fastcall SignUp_UI(char*, char*);
+	void __fastcall Show_Ciphertext(const char*);
+	void __fastcall Login_UI(char*, const char*);
+}
+
+// ===================================================
 // shift cipher
 // ===================================================
 
